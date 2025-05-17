@@ -1,0 +1,10 @@
+.highlightedText {
+  background-color: #fff59d;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.highlightedText:hover {
+  background-color: #ffee58;
+}
