@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Highlight Keeper",
+  "version": "1.0",
+  "description": "Highlight sentences on web pages and save notes",
+  "permissions": ["activeTab", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"]
+    }
+  ]
+}
