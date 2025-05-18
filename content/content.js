@@ -187,7 +187,7 @@ function createHighlightToolbar(rect, highlightElement) {
   deleteButton.style.fontSize = "14px";
 
   deleteButton.addEventListener("click", function () {
-    console.log("TODO: Remove highlight");
+    removeHighlight(highlightElement);
     toolbar.remove();
   });
 
@@ -202,4 +202,15 @@ function createHighlightToolbar(rect, highlightElement) {
       document.removeEventListener("click", closeToolbar);
     }
   });
+}
+
+function removeHighlight(highlightElement) {
+  const textContent = highlightElement.textContent;
+  const textNode = document.createTextNode(textContent);
+  const parentNode = highlightElement.parentNode;
+
+  if (parentNode) {
+    parentNode.replaceChild(textNode, highlightElement);
+    parentNode.normalize();
+  }
 }
