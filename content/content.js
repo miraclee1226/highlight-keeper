@@ -155,7 +155,8 @@ function createHighlightToolbar(rect, highlightElement) {
     colorButton.style.border = "1px solid #ddd";
 
     colorButton.addEventListener("click", function () {
-      console.log("TODO: Change highlight color to", color);
+      highlightElement.style.backgroundColor = color;
+      highlightElement.dataset.color = color;
       toolbar.remove();
     });
 
