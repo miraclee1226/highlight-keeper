@@ -11,10 +11,63 @@ function isSelectionOverlappingHighlight(selection) {
   const range = selection.getRangeAt(0);
   const highlightedElements = document.querySelectorAll(".highlightedText");
 
+  const highlightsWithNotes = Array.from(highlightedElements).filter(
+    (el) => el.dataset.note && el.dataset.note.trim().length > 0
+  );
+
+  const highlightsWithoutNotes = Array.from(highlightedElements).filter(
+    (el) => !el.dataset.note || el.dataset.note.trim().length === 0
+  );
+
+  // hasNote: true
   let overlappingElements = [];
 
-  for (let i = 0; i < highlightedElements.length; i++) {
-    const highlightedElement = highlightedElements[i];
+  for (let i = 0; i < highlightsWithNotes.length; i++) {
+    const highlightedElement = highlightsWithNotes[i];
+
+    if (range.intersectsNode(highlightedElement)) {
+      overlappingElements.push(highlightedElement);
+    }
+  }
+
+  if (overlappingElements.length > 0) {
+    const selectionStartNode = range.startContainer;
+    const selectionEndNode = range.endContainer;
+
+    for (const element of overlappingElements) {
+      if (
+        element.contains(selectionStartNode) &&
+        element.contains(selectionEndNode)
+      ) {
+        return { type: "contained", element, hasNote: true };
+      }
+    }
+
+    for (const element of overlappingElements) {
+      if (
+        (range.startContainer.parentNode &&
+          range.startContainer.parentNode.compareDocumentPosition(element) &
+            Node.DOCUMENT_POSITION_CONTAINED_BY) ||
+        (range.endContainer.parentNode &&
+          range.endContainer.parentNode.compareDocumentPosition(element) &
+            Node.DOCUMENT_POSITION_CONTAINED_BY)
+      ) {
+        return { type: "encompassing", element, hasNote: true };
+      }
+    }
+
+    return {
+      type: "overlapping",
+      element: overlappingElements[0],
+      hasNote: true,
+    };
+  }
+
+  // hasNote: false
+  overlappingElements = [];
+
+  for (let i = 0; i < highlightsWithoutNotes.length; i++) {
+    const highlightedElement = highlightsWithoutNotes[i];
 
     if (range.intersectsNode(highlightedElement)) {
       overlappingElements.push(highlightedElement);
@@ -31,11 +84,31 @@ function isSelectionOverlappingHighlight(selection) {
       element.contains(selectionStartNode) &&
       element.contains(selectionEndNode)
     ) {
-      return { type: "contained", element };
+      return { type: "contained", element, hasNote: false };
     }
   }
 
-  return { type: "overlapping", element: overlappingElements[0] };
+  for (const element of overlappingElements) {
+    if (
+      !element.contains(selectionStartNode) &&
+      element.contains(selectionEndNode)
+    ) {
+      return { type: "startsBeforeHighlight", element, hasNote: false };
+    }
+
+    if (
+      element.contains(selectionStartNode) &&
+      !element.contains(selectionEndNode)
+    ) {
+      return { type: "endsAfterHighlight", element, hasNote: false };
+    }
+  }
+
+  return {
+    type: "overlapping",
+    element: overlappingElements[0],
+    hasNote: false,
+  };
 }
 
 function handleHighlighting() {
@@ -56,18 +129,99 @@ function handleHighlighting() {
     return;
   }
 
-  if (overlapResult.type === "overlapping") {
-    const originalText = overlapResult.element.textContent;
-    const textNode = document.createTextNode(originalText);
+  if (overlapResult.type === "encompassing" && overlapResult.hasNote) {
+    selection.removeAllRanges();
+    showNotification("Existing highlight with notes cannot be modified");
+    return;
+  }
 
-    overlapResult.element.parentNode.replaceChild(
-      textNode,
-      overlapResult.element
+  if (overlapResult.type === "overlapping") {
+    if (overlapResult.hasNote) {
+      selection.removeAllRanges();
+      showNotification("Cannot modify highlight with notes");
+      return;
+    } else {
+      const originalText = overlapResult.element.textContent;
+      const textNode = document.createTextNode(originalText);
+
+      overlapResult.element.parentNode.replaceChild(
+        textNode,
+        overlapResult.element
+      );
+
+      applyHighlight(selection);
+      selection.removeAllRanges();
+    }
+  } else if (overlapResult.type === "startsBeforeHighlight") {
+    if (overlapResult.hasNote) {
+      selection.removeAllRanges();
+      showNotification("Cannot modify highlight with notes");
+      return;
+    }
+
+    const highlightElement = overlapResult.element;
+    const highlightText = highlightElement.textContent;
+    const expandedRange = selection.getRangeAt(0).cloneRange();
+    const textNode = document.createTextNode(highlightText);
+
+    highlightElement.parentNode.replaceChild(textNode, highlightElement);
+    expandedRange.setStart(
+      selection.getRangeAt(0).startContainer,
+      selection.getRangeAt(0).startOffset
+    );
+    expandedRange.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(expandedRange);
+    applyHighlight(selection);
+    selection.removeAllRanges();
+  } else if (overlapResult.type === "endsAfterHighlight") {
+    if (overlapResult.hasNote) {
+      selection.removeAllRanges();
+      showNotification("Cannot modify highlight with notes");
+      return;
+    }
+
+    const highlightElement = overlapResult.element;
+    const highlightText = highlightElement.textContent;
+    const expandedRange = selection.getRangeAt(0).cloneRange();
+    const textNode = document.createTextNode(highlightText);
+
+    highlightElement.parentNode.replaceChild(textNode, highlightElement);
+    expandedRange.setStartBefore(textNode);
+    expandedRange.setEnd(
+      selection.getRangeAt(0).endContainer,
+      selection.getRangeAt(0).endOffset
     );
 
+    selection.removeAllRanges();
+    selection.addRange(expandedRange);
     applyHighlight(selection);
     selection.removeAllRanges();
   }
+}
+
+function showNotification(message) {
+  const notification = document.createElement("div");
+  notification.textContent = message;
+  notification.style.position = "fixed";
+  notification.style.top = "10px";
+  notification.style.left = "50%";
+  notification.style.transform = "translateX(-50%)";
+  notification.style.padding = "8px 16px";
+  notification.style.backgroundColor = "#f44336";
+  notification.style.color = "white";
+  notification.style.borderRadius = "4px";
+  notification.style.zIndex = "9999";
+  notification.style.fontSize = "14px";
+  notification.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
+
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.style.transition = "opacity 0.5s";
+    notification.style.opacity = "0";
+    setTimeout(() => notification.remove(), 500);
+  }, 3000);
 }
 
 function applyHighlight(selection) {
