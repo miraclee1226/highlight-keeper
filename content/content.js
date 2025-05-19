@@ -381,6 +381,8 @@ function removeHighlight(highlightElement) {
     parentNode.replaceChild(fragment, highlightElement);
     parentNode.normalize();
   }
+
+  removeNoteIcon(highlightElement);
 }
 
 function openNoteEditor(highlightElement, editMode = true) {
@@ -403,7 +405,7 @@ function openNoteEditor(highlightElement, editMode = true) {
   editorContainer.style.zIndex = "10";
 
   const title = document.createElement("h3");
-  title.textContent = editMode ? "Edit Note ✏️" : "Note ✏️";
+  title.textContent = editMode ? "Edit Note" : "Note";
   title.style.margin = "0 0 10px 0";
   title.style.fontSize = "16px";
   editorContainer.appendChild(title);
@@ -517,20 +519,22 @@ function openNoteEditor(highlightElement, editMode = true) {
     buttonContainer.style.justifyContent = "flex-end";
     buttonContainer.style.marginTop = "10px";
 
-    const closeButton = document.createElement("button");
-    closeButton.textContent = "Close";
-    closeButton.style.padding = "6px 12px";
-    closeButton.style.backgroundColor = "#f0f0f0";
-    closeButton.style.border = "1px solid #ddd";
-    closeButton.style.borderRadius = "4px";
-    closeButton.style.cursor = "pointer";
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.style.padding = "6px 12px";
+    deleteButton.style.backgroundColor = "#ff4d4d";
+    deleteButton.style.color = "white";
+    deleteButton.style.border = "1px solid #ff0000";
+    deleteButton.style.borderRadius = "4px";
+    deleteButton.style.cursor = "pointer";
 
-    closeButton.addEventListener("click", function (e) {
+    deleteButton.addEventListener("click", function (e) {
       e.stopPropagation();
+      removeNoteIcon(highlightElement);
       editorContainer.remove();
     });
 
-    buttonContainer.appendChild(closeButton);
+    buttonContainer.appendChild(deleteButton);
     editorContainer.appendChild(buttonContainer);
   }
 
@@ -561,10 +565,8 @@ function openNoteEditor(highlightElement, editMode = true) {
 function saveNote(highlightElement, noteText) {
   if (noteText.length > 0) {
     highlightElement.dataset.note = noteText;
-
     addNoteIcon(highlightElement);
   } else {
-    delete highlightElement.dataset.note;
     removeNoteIcon(highlightElement);
   }
 }
@@ -635,6 +637,7 @@ function removeNoteIcon(highlightElement) {
 
     if (noteIcon) {
       noteIcon.remove();
+      delete highlightElement.dataset.note;
     }
   }
 }
