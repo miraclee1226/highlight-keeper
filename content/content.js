@@ -433,15 +433,14 @@ function addNoteIcon(highlightElement) {
 
     const rect = highlightElement.getBoundingClientRect();
     const noteIcon = document.createElement("button");
-    const noteImg = document.createElement("img");
     noteIcon.className = "noteIcon";
-    noteImg.width = 20;
-    noteImg.height = 20;
-    noteImg.src = "https://img.icons8.com/pulsar-color/20/note.png";
-    noteImg.alt = "note";
-    noteIcon.appendChild(noteImg);
-    noteIcon.dataset.highlightId = highlightElement.dataset.id;
 
+    const img = document.createElement("img");
+    img.src = chrome.runtime.getURL("public/icons/note.svg");
+    img.alt = "Note Icon";
+
+    noteIcon.appendChild(img);
+    noteIcon.dataset.highlightId = highlightElement.dataset.id;
     noteIcon.style.position = "absolute";
     noteIcon.style.backgroundColor = "transparent";
     noteIcon.style.border = "none";

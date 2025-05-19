@@ -14,5 +14,11 @@
       "js": ["content/content.js"],
       "css": ["content/content.css"]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["public/icons/note.svg"],
+      "matches": ["<all_urls>"]
+    }
   ]
 }
