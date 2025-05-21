@@ -1,30 +1,163 @@
-#popupContainer {
-  width: 300px;
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  width: 500px;
   padding: 20px;
-  font-family: Arial, sans-serif;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+a {
+  text-decoration: none;
+}
+
+li {
+  list-style: none;
+}
+
+input:focus {
+  outline: none;
 }
 
 h1 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h2 {
   font-size: 18px;
-  margin-bottom: 10px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
 p {
   font-size: 14px;
-  margin: 10px 0;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
-button {
+span {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.intro {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.intro__title {
+  color: #45a049;
+}
+
+.intro__button {
   width: 100%;
   padding: 10px;
   font-size: 16px;
-  cursor: pointer;
   background-color: #4caf50;
   color: white;
-  border: none;
   border-radius: 5px;
 }
 
-button:hover {
+.highlight-button:hover {
   background-color: #45a049;
+}
+
+.count {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.highlights {
+  background-color: #f9f6f6;
+  padding: 10px 15px;
+  min-height: 120px;
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  min-height: 100px;
+  gap: 10px;
+}
+
+.note__header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note__date {
+  display: block;
+  font-size: 12px;
+  color: #777777;
+}
+
+.note__highlight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.note__dot {
+  width: 8px;
+  height: 8px;
+  background-color: #fff59d;
+  border-radius: 100%;
+  flex-shrink: 0;
+}
+
+.note__memo {
+  display: flex;
+  gap: 14px;
+  min-height: 20px;
+}
+
+.note__marker {
+  width: 4px;
+  min-height: 100%;
+  background-color: #4caf50;
+  border-radius: 24px;
+  flex-shrink: 0;
+}
+
+.note__text {
+  color: #777777;
+  flex-grow: 1;
+}
+
+.note__text--highlight {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: #000;
 }

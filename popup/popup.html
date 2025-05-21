@@ -7,15 +7,50 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <div id="popupContainer">
-      <h1>Highlight Keeper</h1>
+    <section class="intro">
+      <h1 class="intro__title">Highlight Keeper</h1>
       <p>
         Highlight important sentences or phrases you want to remember and leave
-        notes.
+        notes. Click the button below to start highlighting.
       </p>
-      <p>Click the button below to start highlighting.</p>
-      <button id="highlightButton">Start Highlighting</button>
-    </div>
+
+      <button class="intro__button">Start Highlighting</button>
+    </section>
+
+    <section>
+      <span class="count">Saved Highlights: 10</span>
+      <div class="highlights">
+        <div class="note">
+          <div class="note__header">
+            <span class="note__date">2025.05.19 saved</span>
+            <div class="note__highlight">
+              <div class="note__dot"></div>
+              <p class="note__text--highlight">
+                Lorem Ipsum is simply dummy text of the printing and typesetting
+                industry. Lorem Ipsum is simply dummy text of the printing and
+                typesetting industry.
+              </p>
+            </div>
+          </div>
+
+          <div class="note__memo">
+            <div class="note__marker"></div>
+            <p class="note__text">
+              Lorem Ipsum is simply dummy text of the printing and typesetting
+              industry. Lorem Ipsum has been the industry's standard dummy text
+              ever since the 1500s, when an unknown printer took a galley of
+              type and scrambled it to make a type specimen book. It has
+              survived not only five centuries, but also the leap into
+              electronic typesetting, remaining essentially unchanged. It was
+              popularised in the 1960s with the release of Letraset sheets
+              containing Lorem Ipsum passages, and more recently with desktop
+              publishing software like Aldus PageMaker including versions of
+              Lorem Ipsum
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
     <script src="popup.js"></script>
   </body>
 </html>
