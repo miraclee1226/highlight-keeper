@@ -1,11 +1,7 @@
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "start_highlight") {
     document.addEventListener("mouseup", handleHighlighting);
-
-    Promise.resolve().then(() => {
-      sendResponse({ status: "highlighting_started" });
-    });
-    return true;
+    sendResponse({ status: "highlighting_started" });
   }
 });
 

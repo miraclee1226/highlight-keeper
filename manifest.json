@@ -3,21 +3,24 @@
   "name": "Highlight Keeper",
   "version": "1.0",
   "description": "Highlight sentences on web pages and save notes",
-  "permissions": ["activeTab", "tabs"],
+  "permissions": ["activeTab"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_popup": "dist/src/index.html"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content/content.js"],
-      "css": ["content/content.css"]
+      "js": ["dist/content-script.js"],
+      "css": ["dist/content-style.css"]
     }
   ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
   "web_accessible_resources": [
     {
-      "resources": ["public/icons/note.svg"],
+      "resources": ["dist/icons/note.svg"],
       "matches": ["<all_urls>"]
     }
   ]
