@@ -13,23 +13,24 @@ export function applyHighlight(selection) {
 function applyUnifiedHighlight(range, highlightId) {
   const textNodes = [];
 
-  const treeWalker = document.createTreeWalker(
-    range.commonAncestorContainer,
-    NodeFilter.SHOW_TEXT,
-    {
-      acceptNode: (node) => {
-        if (!node.textContent.trim()) {
-          return NodeFilter.FILTER_REJECT;
-        }
+  let rootNode = range.commonAncestorContainer;
+  if (rootNode.nodeType == Node.TEXT_NODE) {
+    rootNode = rootNode.parentNode;
+  }
 
-        if (range.intersectsNode(node)) {
-          return NodeFilter.FILTER_ACCEPT;
-        }
-
+  const treeWalker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      if (!node.textContent.trim()) {
         return NodeFilter.FILTER_REJECT;
-      },
-    }
-  );
+      }
+
+      if (range.intersectsNode(node)) {
+        return NodeFilter.FILTER_ACCEPT;
+      }
+
+      return NodeFilter.FILTER_REJECT;
+    },
+  });
 
   let node;
   while ((node = treeWalker.nextNode())) {
