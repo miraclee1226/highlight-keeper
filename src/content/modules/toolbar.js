@@ -13,14 +13,16 @@ export function handleHighlightClick(e) {
   }
 
   const highlightElement = e.currentTarget;
+  const highlightId = highlightElement.dataset.id;
+  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
 
-  createHighlightToolbar(highlightElement);
+  createHighlightToolbar(highlightElement, allElements);
 }
 
-function createHighlightToolbar(highlightElement) {
+function createHighlightToolbar(highlightElement, allElements) {
   const toolbar = createToolbar(highlightElement);
 
-  addColorButtons(toolbar, highlightElement);
+  addColorButtons(toolbar, allElements);
 
   const noteButton = createButton("✏️ Note", { variant: "secondary" }, () => {
     openNoteEditor(highlightElement);
@@ -52,16 +54,16 @@ function createToolbar(highlightElement) {
   return toolbar;
 }
 
-function addColorButtons(toolbar, highlightElement) {
+function addColorButtons(toolbar, allElements) {
   COLORS.forEach((color) => {
     const colorButton = document.createElement("div");
     colorButton.className = "color-palette-button";
-
     colorButton.style.backgroundColor = color;
-
     colorButton.addEventListener("click", () => {
-      highlightElement.style.backgroundColor = color;
-      highlightElement.dataset.color = color;
+      allElements.forEach((element) => {
+        element.style.backgroundColor = color;
+        element.dataset.color = color;
+      });
       toolbar.remove();
     });
 

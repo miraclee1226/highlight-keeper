@@ -1,8 +1,8 @@
 *,
 *::before,
 *::after {
-  margin: 0;
-  padding: 0;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
 
@@ -12,8 +12,6 @@ html {
 
 body {
   font-family: "Noto Sans KR", sans-serif;
-  width: 500px;
-  padding: 20px;
 }
 
 button {
@@ -185,7 +183,7 @@ span {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   padding: 10px;
-  width: 300px;
+  width: 320px;
   z-index: 9999;
 }
 
@@ -203,6 +201,7 @@ span {
   height: 100px;
   resize: none;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .note-editor__textarea::placeholder {
@@ -272,6 +271,6 @@ span {
   transition: background-color 0.2s ease;
 }
 
-.highlighted-element:hover {
+.highlighted-element--hover {
   background-color: #ffee58;
 }

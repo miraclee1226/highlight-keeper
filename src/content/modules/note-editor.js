@@ -1,20 +1,13 @@
 import { addNoteIcon, removeNoteIcon } from "./note-icon.js";
 import createButton from "../../components/button.js";
 
-const TEXTAREA_STYLES = {
-  width: "100%",
-  padding: "8px",
-  border: "1px solid #ddd",
-  borderRadius: "4px",
-};
-
 export function openNoteEditor(highlightElement, editMode = true) {
   removeExistingEditor();
 
   const editorContainer = createEditorContainer(highlightElement);
   const currentNote = highlightElement.dataset.note || "";
-
   const title = createTitle(editMode ? "Edit Note" : "Note");
+
   editorContainer.appendChild(title);
 
   if (editMode) {
@@ -99,7 +92,9 @@ function setupViewMode(editorContainer, highlightElement, currentNote) {
 
   const buttonContainer = createButtonContainer();
   const deleteButton = createButton("Delete", { variant: "danger" }, () => {
-    removeNoteIcon(highlightElement);
+    const highlightId = highlightElement.dataset.id;
+
+    removeNoteIcon(highlightId);
     editorContainer.remove();
   });
 
@@ -177,10 +172,18 @@ function setupEditorCloseHandler(editorContainer, highlightElement) {
 }
 
 export function saveNote(highlightElement, noteText) {
+  const highlightId = highlightElement.dataset.id;
+  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
+
   if (noteText.length > 0) {
-    highlightElement.dataset.note = noteText;
+    allElements.forEach((element) => {
+      element.dataset.note = noteText;
+    });
     addNoteIcon(highlightElement);
   } else {
+    allElements.forEach((element) => {
+      delete element.dataset.note;
+    });
     removeNoteIcon(highlightElement);
   }
 }

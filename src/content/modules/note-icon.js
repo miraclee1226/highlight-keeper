@@ -37,21 +37,24 @@ function createNoteIcon(highlightElement) {
   return noteIcon;
 }
 
-export function removeNoteIcon(highlightElement) {
-  if (highlightElement.dataset.id) {
-    const noteIcon = document.querySelector(
-      `.note-icon[data-highlight-id="${highlightElement.dataset.id}"]`
-    );
+export function removeNoteIcon(highlightId) {
+  const noteIcon = document.querySelector(
+    `.note-icon[data-highlight-id="${highlightId}"]`
+  );
+  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
 
-    if (noteIcon) {
-      noteIcon.remove();
-      delete highlightElement.dataset.note;
-    }
+  if (noteIcon) {
+    noteIcon.remove();
   }
+
+  allElements.forEach((element) => {
+    delete element.dataset.note;
+  });
 }
 
 export function updateNoteIconPosition(highlightElement, noteIcon) {
   const rect = highlightElement.getBoundingClientRect();
+
   noteIcon.style.top = window.scrollY + rect.top - 20 + "px";
   noteIcon.style.left = window.scrollX + rect.right - 3 + "px";
 }

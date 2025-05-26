@@ -1,7 +1,6 @@
 import { notification } from "../components";
 import { applyHighlight } from "./modules/highlighter";
 import { isSelectionOverlappingHighlight } from "./modules/overlap-detector";
-import { isMutiParagraphSelection } from "./modules/range-validator";
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "start_highlight") {
@@ -12,15 +11,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 function handleHighlighting() {
   const selection = window.getSelection();
-  const range = selection.getRangeAt(0);
 
   if (selection.toString().trim().length === 0) return;
-
-  if (isMutiParagraphSelection(range)) {
-    selection.removeAllRanges();
-    notification("Multi-paragraph selection is not supported");
-    return;
-  }
 
   const overlapResult = isSelectionOverlappingHighlight(selection);
 
