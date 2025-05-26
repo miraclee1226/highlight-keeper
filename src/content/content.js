@@ -84,19 +84,28 @@ function handleHighlighting() {
     }
 
     const highlightElement = overlapResult.element;
-    const highlightText = highlightElement.textContent;
-    const expandedRange = selection.getRangeAt(0).cloneRange();
-    const textNode = document.createTextNode(highlightText);
+    const highlightId = highlightElement.dataset.id;
+    const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
+    const firstElement = allElements[0];
+    const expandedRange = document.createRange();
 
-    highlightElement.parentNode.replaceChild(textNode, highlightElement);
-    expandedRange.setStartBefore(textNode);
+    expandedRange.setStartBefore(firstElement);
     expandedRange.setEnd(
       selection.getRangeAt(0).endContainer,
       selection.getRangeAt(0).endOffset
     );
 
+    allElements.forEach((element) => {
+      const textNode = document.createTextNode(element.textContent);
+      const parentNode = element.parentNode;
+
+      element.parentNode.replaceChild(textNode, element);
+      parentNode.normalize();
+    });
+
     selection.removeAllRanges();
     selection.addRange(expandedRange);
+
     applyHighlight(selection);
     selection.removeAllRanges();
   }
