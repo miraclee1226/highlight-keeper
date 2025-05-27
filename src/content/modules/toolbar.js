@@ -1,4 +1,4 @@
-import { createButton } from "../../components";
+import { Button } from "../../components";
 import { COLORS } from "../../constant/colors";
 import { removeHighlight } from "./highlighter";
 import { openNoteEditor } from "./note-editor";
@@ -22,12 +22,12 @@ function createHighlightToolbar(highlightElement) {
 
   addColorButtons(toolbar, highlightElement);
 
-  const noteButton = createButton("✏️ Note", { variant: "secondary" }, () => {
+  const noteButton = Button("✏️ Note", { variant: "secondary" }, () => {
     openNoteEditor(highlightElement);
     toolbar.remove();
   });
 
-  const deleteButton = createButton("🗑️ Delete", { variant: "danger" }, () => {
+  const deleteButton = Button("🗑️ Delete", { variant: "danger" }, () => {
     removeHighlight(highlightElement);
     toolbar.remove();
   });
@@ -35,14 +35,7 @@ function createHighlightToolbar(highlightElement) {
   toolbar.append(noteButton, deleteButton);
   document.body.appendChild(toolbar);
 
-  const updatePosition = () => {
-    positionToolbar(highlightElement, toolbar);
-  };
-
-  window.addEventListener("scroll", updatePosition);
-  window.addEventListener("resize", updatePosition);
-
-  toolbarCloseHandler(toolbar, highlightElement, updatePosition);
+  toolbarCloseHandler(toolbar, highlightElement);
 }
 
 function createToolbar(highlightElement) {
@@ -76,13 +69,11 @@ function addColorButtons(toolbar, highlightElement) {
   });
 }
 
-function toolbarCloseHandler(toolbar, highlightElement, updatePosition) {
+function toolbarCloseHandler(toolbar, highlightElement) {
   const closeToolbar = (e) => {
     if (!toolbar.contains(e.target) && !highlightElement.contains(e.target)) {
       toolbar.remove();
       document.removeEventListener("click", closeToolbar);
-      window.removeEventListener("scroll", updatePosition);
-      window.removeEventListener("resize", updatePosition);
     }
   };
 
