@@ -15,8 +15,7 @@ export function addNoteIcon(highlightElement) {
     openNoteEditor(highlightElement, false);
   });
 
-  const updatePosition = () =>
-    updateNoteIconPosition(highlightElement, noteIcon);
+  const updatePosition = () => positionNoteIcon(highlightElement, noteIcon);
   window.addEventListener("scroll", updatePosition);
   window.addEventListener("resize", updatePosition);
 }
@@ -32,7 +31,7 @@ function createNoteIcon(highlightElement) {
   noteIcon.className = "note-icon";
   noteIcon.dataset.highlightId = highlightElement.dataset.id;
 
-  updateNoteIconPosition(highlightElement, noteIcon);
+  positionNoteIcon(highlightElement, noteIcon);
 
   return noteIcon;
 }
@@ -52,7 +51,7 @@ export function removeNoteIcon(highlightId) {
   });
 }
 
-export function updateNoteIconPosition(highlightElement, noteIcon) {
+export function positionNoteIcon(highlightElement, noteIcon) {
   const rect = highlightElement.getBoundingClientRect();
 
   noteIcon.style.top = window.scrollY + rect.top - 20 + "px";

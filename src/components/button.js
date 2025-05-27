@@ -6,7 +6,6 @@ export default function createButton(
 ) {
   const button = document.createElement("button");
   button.textContent = text;
-
   button.className = getButtonClasses(options.variant);
 
   if (options.styles) {

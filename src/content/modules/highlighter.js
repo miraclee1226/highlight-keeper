@@ -37,12 +37,6 @@ function applyUnifiedHighlight(range, highlightId) {
     textNodes.push(node);
   }
 
-  textNodes.sort((a, b) => {
-    const position =
-      a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING;
-    return position ? -1 : 1;
-  });
-
   textNodes.forEach((textNode) => {
     wrapTextNodeSafely(textNode, range, highlightId);
   });
@@ -67,6 +61,7 @@ function wrapTextNodeSafely(textNode, range, highlightId) {
   }
 
   const highlightElement = createHighlightElement(highlightText, highlightId);
+
   highlightElement.addEventListener("click", handleHighlightClick);
   fragment.appendChild(highlightElement);
 
@@ -94,20 +89,32 @@ function getTextNodeIntersection(textNode, range) {
 
 function calculateStartOffset(textNode, range) {
   const isStartNode = range.startContainer === textNode;
-  const startPosition = textNode.compareDocumentPosition(range.startContainer);
+  const startOffset = range.startOffset;
 
-  if (isStartNode) return range.startOffset;
+  if (isStartNode) return startOffset;
 
-  return startPosition & Node.DOCUMENT_POSITION_PRECEDING ? 0 : null;
+  const startPosition =
+    textNode.compareDocumentPosition(range.startContainer) &
+    Node.DOCUMENT_POSITION_PRECEDING
+      ? 0
+      : null;
+
+  return startPosition;
 }
 
 function calculateEndOffset(textNode, range, textLength) {
   const isEndNode = range.endContainer === textNode;
-  const endPosition = textNode.compareDocumentPosition(range.endContainer);
+  const endOffset = range.endOffset;
 
-  if (isEndNode) return range.endOffset;
+  if (isEndNode) return endOffset;
 
-  return endPosition & Node.DOCUMENT_POSITION_FOLLOWING ? textLength : null;
+  const endPosition =
+    textNode.compareDocumentPosition(range.endContainer) &
+    Node.DOCUMENT_POSITION_FOLLOWING
+      ? textLength
+      : null;
+
+  return endPosition;
 }
 
 function generateHighlightId() {
@@ -148,9 +155,10 @@ function createHighlightElement(highlightText, highlightId) {
 
 export function removeHighlight(highlightElement) {
   const highlightId = highlightElement.dataset.id;
-  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
 
   if (!highlightId) return;
+
+  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
 
   removeNoteIcon(highlightId);
 

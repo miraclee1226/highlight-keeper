@@ -6,23 +6,21 @@ import { openNoteEditor } from "./note-editor";
 export function handleHighlightClick(e) {
   e.stopPropagation();
 
-  const existingToolbar = document.querySelector(".toolbar");
+  const toolbar = document.querySelector(".toolbar");
 
-  if (existingToolbar) {
-    existingToolbar.remove();
+  if (toolbar) {
+    toolbar.remove();
   }
 
   const highlightElement = e.currentTarget;
-  const highlightId = highlightElement.dataset.id;
-  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
 
-  createHighlightToolbar(highlightElement, allElements);
+  createHighlightToolbar(highlightElement);
 }
 
-function createHighlightToolbar(highlightElement, allElements) {
+function createHighlightToolbar(highlightElement) {
   const toolbar = createToolbar(highlightElement);
 
-  addColorButtons(toolbar, allElements);
+  addColorButtons(toolbar, highlightElement);
 
   const noteButton = createButton("✏️ Note", { variant: "secondary" }, () => {
     openNoteEditor(highlightElement);
@@ -37,8 +35,10 @@ function createHighlightToolbar(highlightElement, allElements) {
   toolbar.append(noteButton, deleteButton);
   document.body.appendChild(toolbar);
 
-  const updatePosition = () =>
-    setupEditorCloseHandler(highlightElement, toolbar);
+  const updatePosition = () => {
+    positionToolbar(highlightElement, toolbar);
+  };
+
   window.addEventListener("scroll", updatePosition);
   window.addEventListener("resize", updatePosition);
 
@@ -49,14 +49,18 @@ function createToolbar(highlightElement) {
   const toolbar = document.createElement("div");
   toolbar.className = "toolbar";
 
-  setupEditorCloseHandler(highlightElement, toolbar);
+  positionToolbar(highlightElement, toolbar);
 
   return toolbar;
 }
 
-function addColorButtons(toolbar, allElements) {
+function addColorButtons(toolbar, highlightElement) {
+  const highlightId = highlightElement.dataset.id;
+  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
+
   COLORS.forEach((color) => {
     const colorButton = document.createElement("div");
+
     colorButton.className = "color-palette-button";
     colorButton.style.backgroundColor = color;
     colorButton.addEventListener("click", () => {
@@ -64,6 +68,7 @@ function addColorButtons(toolbar, allElements) {
         element.style.backgroundColor = color;
         element.dataset.color = color;
       });
+
       toolbar.remove();
     });
 
@@ -84,8 +89,9 @@ function toolbarCloseHandler(toolbar, highlightElement, updatePosition) {
   document.addEventListener("click", closeToolbar);
 }
 
-function setupEditorCloseHandler(highlightElement, toolbar) {
+function positionToolbar(highlightElement, toolbar) {
   const rect = highlightElement.getBoundingClientRect();
+
   toolbar.style.top = window.scrollY + rect.bottom + 5 + "px";
   toolbar.style.left = window.scrollX + rect.left + "px";
 }
