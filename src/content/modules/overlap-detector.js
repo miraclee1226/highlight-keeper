@@ -1,38 +1,21 @@
 export function isSelectionOverlappingHighlight(selection) {
-  if (!selection.rangeCount) return false;
-
   const range = selection.getRangeAt(0);
   const highlightedElements = document.querySelectorAll(".highlighted-element");
 
-  const highlightsWithNotes = Array.from(highlightedElements).filter(
-    (el) => el.dataset.note && el.dataset.note.trim().length > 0
-  );
-  const highlightsWithoutNotes = Array.from(highlightedElements).filter(
-    (el) => !el.dataset.note || el.dataset.note.trim().length === 0
-  );
-
-  const noteResult = checkOverlapWithHighlights(
-    range,
-    highlightsWithNotes,
-    true
-  );
-
-  if (noteResult) return noteResult;
-
-  return checkOverlapWithHighlights(range, highlightsWithoutNotes, false);
+  return checkOverlapWithHighlights(range, Array.from(highlightedElements));
 }
 
-function checkOverlapWithHighlights(range, highlights, hasNote) {
+function checkOverlapWithHighlights(range, highlights) {
   const overlappingElements = findOverlappingElements(range, highlights);
 
   if (overlappingElements.length === 0) return null;
 
-  const overlapType = determineOverlapType(range, overlappingElements, hasNote);
+  const overlapType = determineOverlapType(range, overlappingElements);
 
   return {
     type: overlapType.type,
     element: overlapType.element,
-    hasNote: hasNote,
+    overlappingElements: overlappingElements,
   };
 }
 
@@ -46,58 +29,66 @@ function findOverlappingElements(range, highlights) {
       overlappingElements.push(highlightedElement);
     }
   }
+
   return overlappingElements;
 }
 
-function determineOverlapType(range, overlappingElements, hasNote) {
+function determineOverlapType(range, overlappingElements) {
   const selectionStartNode = range.startContainer;
   const selectionEndNode = range.endContainer;
 
-  for (const element of overlappingElements) {
-    if (
-      element.contains(selectionStartNode) &&
-      element.contains(selectionEndNode)
-    ) {
-      return { type: "contained", element };
-    }
+  // 1. contained
+  const containedElement = overlappingElements.find(
+    (element) =>
+      element.contains(selectionStartNode) && element.contains(selectionEndNode)
+  );
+
+  if (containedElement) {
+    return { type: "contained", element: containedElement };
   }
 
-  if (hasNote) {
-    for (const element of overlappingElements) {
-      if (isEncompassingRelation(range, element)) {
-        return { type: "encompassing", element };
-      }
-    }
+  // 2. encompassing
+  const encompassingElement = overlappingElements.find((element) =>
+    isEncompassingRelation(range, element)
+  );
 
-    return { type: "overlapping", element: overlappingElements[0] };
+  if (encompassingElement) {
+    return { type: "encompassing", element: encompassingElement };
   }
 
-  for (const element of overlappingElements) {
-    if (
+  // 3. starts_before_highlight
+  const startsBeforeElement = overlappingElements.find(
+    (element) =>
       !element.contains(selectionStartNode) &&
       element.contains(selectionEndNode)
-    ) {
-      return { type: "starts_before_highlight", element };
-    }
+  );
 
-    if (
-      element.contains(selectionStartNode) &&
-      !element.contains(selectionEndNode)
-    ) {
-      return { type: "ends_after_highlight", element };
-    }
+  if (startsBeforeElement) {
+    return { type: "starts_before_highlight", element: startsBeforeElement };
   }
 
+  // 4. ends_after_highlight
+  const endsAfterElement = overlappingElements.find(
+    (element) =>
+      element.contains(selectionStartNode) &&
+      !element.contains(selectionEndNode)
+  );
+
+  if (endsAfterElement) {
+    return { type: "ends_after_highlight", element: endsAfterElement };
+  }
+
+  // 5. overlapping
   return { type: "overlapping", element: overlappingElements[0] };
 }
 
 function isEncompassingRelation(range, element) {
+  const elementRange = document.createRange();
+
+  elementRange.selectNode(element);
+
   return (
-    (range.startContainer.parentNode &&
-      range.startContainer.parentNode.compareDocumentPosition(element) &
-        Node.DOCUMENT_POSITION_CONTAINED_BY) ||
-    (range.endContainer.parentNode &&
-      range.endContainer.parentNode.compareDocumentPosition(element) &
-        Node.DOCUMENT_POSITION_CONTAINED_BY)
+    range.compareBoundaryPoints(Range.START_TO_START, elementRange) <= 0 &&
+    range.compareBoundaryPoints(Range.END_TO_END, elementRange) >= 0
   );
 }
