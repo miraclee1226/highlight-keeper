@@ -1,2 +1,2 @@
-export { default as createButton } from "./button.js";
-export { default as notification } from "./notification.js";
+export { default as Button } from "./button.js";
+export { default as Notification } from "./notification.js";

@@ -1,4 +1,4 @@
-export default function notification(message, options = {}) {
+export default function createNotification(message, options = {}) {
   if (!message) {
     console.warn("Notification: Invalid message provided");
     return;
