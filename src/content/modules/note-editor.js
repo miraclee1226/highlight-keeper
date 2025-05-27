@@ -1,109 +1,137 @@
 import { addNoteIcon, removeNoteIcon } from "./note-icon.js";
-import createButton from "../../components/button.js";
+import { Button } from "../../components/index.js";
 
 export function openNoteEditor(highlightElement, editMode = true) {
   removeExistingEditor();
 
-  const editorContainer = createEditorContainer(highlightElement);
+  const noteEditor = createNoteEditor(highlightElement);
   const currentNote = highlightElement.dataset.note || "";
   const title = createTitle(editMode ? "Edit Note" : "Note");
 
-  editorContainer.appendChild(title);
+  noteEditor.appendChild(title);
 
   if (editMode) {
-    setupEditMode(editorContainer, highlightElement, currentNote);
+    setupEditMode(noteEditor, highlightElement, currentNote);
   } else {
-    setupViewMode(editorContainer, highlightElement, currentNote);
+    setupViewMode(noteEditor, highlightElement, currentNote);
   }
 
-  document.body.appendChild(editorContainer);
-  adjustEditorPosition(editorContainer);
-  setupEditorCloseHandler(editorContainer, highlightElement);
+  document.body.appendChild(noteEditor);
+  adjustEditorPosition(noteEditor);
+
+  editorCloseHandler(noteEditor, highlightElement);
 }
 
 function removeExistingEditor() {
   const existingEditor = document.querySelector(".note-editor");
+
   if (existingEditor) {
     existingEditor.remove();
   }
 }
 
-function createEditorContainer(highlightElement) {
+function createNoteEditor(highlightElement) {
+  const noteEditor = document.createElement("div");
+
+  noteEditor.className = "note-editor";
+
+  positionNoteEditor(highlightElement, noteEditor);
+  addEventStoppers(noteEditor);
+
+  return noteEditor;
+}
+
+function positionNoteEditor(highlightElement, noteEditor) {
   const rect = highlightElement.getBoundingClientRect();
-  const editorContainer = document.createElement("div");
-  editorContainer.className = "note-editor";
 
-  editorContainer.style.top = window.scrollY + rect.bottom + 5 + "px";
-  editorContainer.style.left = window.scrollX + rect.left + "px";
+  noteEditor.style.top = window.scrollY + rect.bottom + 5 + "px";
+  noteEditor.style.left = window.scrollX + rect.left + "px";
+}
 
-  addEventStoppers(editorContainer);
+function adjustEditorPosition(noteEditor) {
+  const editorRect = noteEditor.getBoundingClientRect();
 
-  return editorContainer;
+  if (editorRect.right > window.innerWidth) {
+    noteEditor.style.left =
+      window.scrollX + window.innerWidth - editorRect.width - 10 + "px";
+  }
+
+  if (editorRect.bottom > window.innerHeight) {
+    noteEditor.style.top =
+      window.scrollY + window.innerHeight - editorRect.height - 10 + "px";
+  }
 }
 
 function createTitle(text) {
   const title = document.createElement("h3");
+
   title.className = "note-editor__title";
   title.textContent = text;
 
   return title;
 }
 
-function createButtonContainer() {
+function createButton() {
   const buttonContainer = document.createElement("div");
+
   buttonContainer.className = "note-editor__button-container";
 
   return buttonContainer;
 }
 
-function setupEditMode(editorContainer, highlightElement, currentNote) {
+function setupEditMode(noteEditor, highlightElement, currentNote) {
   const textarea = createTextarea(currentNote);
-  editorContainer.appendChild(textarea);
+  const buttonContainer = createButton();
 
-  const buttonContainer = createButtonContainer();
-  const cancelButton = createButton("Cancel", { variant: "secondary" }, () => {
-    editorContainer.remove();
+  noteEditor.appendChild(textarea);
+
+  const cancelButton = Button("Cancel", { variant: "secondary" }, () => {
+    noteEditor.remove();
   });
 
-  const saveButton = createButton("Save", { variant: "primary" }, () => {
+  const saveButton = Button("Save", { variant: "primary" }, () => {
     const noteText = textarea.value.trim();
+
     saveNote(highlightElement, noteText);
-    editorContainer.remove();
+    noteEditor.remove();
   });
 
   buttonContainer.append(cancelButton, saveButton);
-  editorContainer.appendChild(buttonContainer);
+  noteEditor.appendChild(buttonContainer);
 
   textarea.focus();
 }
 
-function setupViewMode(editorContainer, highlightElement, currentNote) {
+function setupViewMode(noteEditor, highlightElement, currentNote) {
   const noteDisplay = createNoteDisplay(currentNote);
-  editorContainer.appendChild(noteDisplay);
+  const hintText = createHintText();
+  const buttonContainer = createButton();
+
+  noteEditor.appendChild(noteDisplay);
 
   noteDisplay.addEventListener("dblclick", (e) => {
     e.stopPropagation();
-    editorContainer.remove();
+
+    noteEditor.remove();
     openNoteEditor(highlightElement, true);
   });
 
-  const hintText = createHintText();
-  editorContainer.appendChild(hintText);
+  noteEditor.appendChild(hintText);
 
-  const buttonContainer = createButtonContainer();
-  const deleteButton = createButton("Delete", { variant: "danger" }, () => {
+  const deleteButton = Button("Delete", { variant: "danger" }, () => {
     const highlightId = highlightElement.dataset.id;
 
     removeNoteIcon(highlightId);
-    editorContainer.remove();
+    noteEditor.remove();
   });
 
   buttonContainer.appendChild(deleteButton);
-  editorContainer.appendChild(buttonContainer);
+  noteEditor.appendChild(buttonContainer);
 }
 
 function createTextarea(currentNote) {
   const textarea = document.createElement("textarea");
+
   textarea.className = "note-editor__textarea";
   textarea.value = currentNote;
   textarea.placeholder = "Add your notes here...";
@@ -115,6 +143,7 @@ function createTextarea(currentNote) {
 
 function createNoteDisplay(currentNote) {
   const noteDisplay = document.createElement("div");
+
   noteDisplay.className = "note-editor__display";
 
   if (!currentNote || currentNote.trim() === "") {
@@ -131,6 +160,7 @@ function createNoteDisplay(currentNote) {
 
 function createHintText() {
   const hintText = document.createElement("p");
+
   hintText.className = "note-editor__hint";
   hintText.textContent = "Double-click to edit";
 
@@ -143,27 +173,13 @@ function addEventStoppers(element) {
   });
 }
 
-function adjustEditorPosition(editorContainer) {
-  const editorRect = editorContainer.getBoundingClientRect();
-
-  if (editorRect.right > window.innerWidth) {
-    editorContainer.style.left =
-      window.scrollX + window.innerWidth - editorRect.width - 10 + "px";
-  }
-
-  if (editorRect.bottom > window.innerHeight) {
-    editorContainer.style.top =
-      window.scrollY + window.innerHeight - editorRect.height - 10 + "px";
-  }
-}
-
-function setupEditorCloseHandler(editorContainer, highlightElement) {
+function editorCloseHandler(noteEditor, highlightElement, updatePosition) {
   const closeEditor = (e) => {
     if (
-      !editorContainer.contains(e.target) &&
+      !noteEditor.contains(e.target) &&
       !highlightElement.contains(e.target)
     ) {
-      editorContainer.remove();
+      noteEditor.remove();
       document.removeEventListener("click", closeEditor);
     }
   };
