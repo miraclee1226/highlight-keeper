@@ -12,12 +12,9 @@ export function addNoteIcon(highlightElement) {
 
   noteIcon.addEventListener("click", function (e) {
     e.stopPropagation();
+
     openNoteEditor(highlightElement, false);
   });
-
-  const updatePosition = () => positionNoteIcon(highlightElement, noteIcon);
-  window.addEventListener("scroll", updatePosition);
-  window.addEventListener("resize", updatePosition);
 }
 
 function createNoteIcon(highlightElement) {
