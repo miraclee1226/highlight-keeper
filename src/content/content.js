@@ -64,23 +64,26 @@ function renderHighlights(highlights) {
 
   highlights.forEach((highlight, index) => {
     setTimeout(() => {
-      const success = restoreHighlight(highlight);
-
-      if (success && highlight.note) {
-        const highlightElements = document.querySelectorAll(
-          `[data-id="${highlight.uuid}"]`
-        );
-
-        if (highlightElements.length > 0) {
-          addNoteIcon(highlightElements[0]);
-
-          highlightElements.forEach((element) => {
-            element.dataset.note = highlight.note;
-          });
-        }
-      }
+      renderSinglehighlight(highlight);
     }, index * 100);
   });
+}
+
+function renderSinglehighlight(highlight) {
+  const success = restoreHighlight(highlight);
+
+  if (success && highlight.note) {
+    const highlightElements = document.querySelectorAll(
+      `[data-id="${highlight.uuid}"]`
+    );
+
+    if (highlightElements.length > 0) {
+      addNoteIcon(highlightElements[0]);
+      highlightElements.forEach((element) => {
+        element.dataset.note = highlight.note;
+      });
+    }
+  }
 }
 
 function scrollToHighlightElement(uuid) {
