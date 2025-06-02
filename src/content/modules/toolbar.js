@@ -62,6 +62,17 @@ function addColorButtons(toolbar, highlightElement) {
         element.dataset.color = color;
       });
 
+      chrome.runtime.sendMessage({
+        action: "update_highlight",
+        payload: {
+          uuid: highlightId,
+          data: {
+            color: color,
+            updatedAt: Date.now(),
+          },
+        },
+      });
+
       toolbar.remove();
     });
 

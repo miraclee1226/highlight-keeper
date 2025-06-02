@@ -20,7 +20,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["dist/icons/note.svg"],
+      "resources": ["public/icons/note.svg"],
       "matches": ["<all_urls>"]
     }
   ]

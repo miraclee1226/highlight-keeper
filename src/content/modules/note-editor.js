@@ -121,6 +121,17 @@ function setupViewMode(noteEditor, highlightElement, currentNote) {
   const deleteButton = Button("Delete", { variant: "danger" }, () => {
     const highlightId = highlightElement.dataset.id;
 
+    chrome.runtime.sendMessage({
+      action: "update_highlight",
+      payload: {
+        uuid: highlightId,
+        data: {
+          note: "",
+          updatedAt: Date.now(),
+        },
+      },
+    });
+
     removeNoteIcon(highlightId);
     noteEditor.remove();
   });
@@ -202,4 +213,15 @@ export function saveNote(highlightElement, noteText) {
     });
     removeNoteIcon(highlightElement);
   }
+
+  chrome.runtime.sendMessage({
+    action: "update_highlight",
+    payload: {
+      uuid: highlightId,
+      data: {
+        note: noteText,
+        updatedAt: Date.now(),
+      },
+    },
+  });
 }

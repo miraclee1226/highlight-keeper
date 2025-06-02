@@ -34,13 +34,12 @@ function findOverlappingElements(range, highlights) {
 }
 
 function determineOverlapType(range, overlappingElements) {
-  const selectionStartNode = range.startContainer;
-  const selectionEndNode = range.endContainer;
+  const startNode = range.startContainer;
+  const endNode = range.endContainer;
 
   // 1. contained
   const containedElement = overlappingElements.find(
-    (element) =>
-      element.contains(selectionStartNode) && element.contains(selectionEndNode)
+    (element) => element.contains(startNode) && element.contains(endNode)
   );
 
   if (containedElement) {
@@ -58,9 +57,7 @@ function determineOverlapType(range, overlappingElements) {
 
   // 3. starts_before_highlight
   const startsBeforeElement = overlappingElements.find(
-    (element) =>
-      !element.contains(selectionStartNode) &&
-      element.contains(selectionEndNode)
+    (element) => !element.contains(startNode) && element.contains(endNode)
   );
 
   if (startsBeforeElement) {
@@ -69,9 +66,7 @@ function determineOverlapType(range, overlappingElements) {
 
   // 4. ends_after_highlight
   const endsAfterElement = overlappingElements.find(
-    (element) =>
-      element.contains(selectionStartNode) &&
-      !element.contains(selectionEndNode)
+    (element) => element.contains(startNode) && !element.contains(endNode)
   );
 
   if (endsAfterElement) {
