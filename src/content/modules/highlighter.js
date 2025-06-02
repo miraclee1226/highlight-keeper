@@ -328,9 +328,9 @@ function calculateEndOffset(textNode, range, textLength) {
 }
 
 function generateHighlightId() {
-  return (
-    "highlight-" + Date.now() + "-" + Math.random().toString(36).substring(2, 9)
-  );
+  const randomId = crypto.randomUUID();
+
+  return "highlight-" + randomId;
 }
 
 function createHighlightElement(highlightText, highlightId) {
