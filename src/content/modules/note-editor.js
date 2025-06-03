@@ -1,12 +1,19 @@
 import { addNoteIcon, removeNoteIcon } from "./note-icon.js";
-import { Button } from "../../components/index.js";
 
-export function openNoteEditor(highlightElement, editMode = true) {
-  removeExistingEditor();
+export function openNoteEditor(
+  highlightElement,
+  toolbar = null,
+  editMode = true
+) {
+  const existingEditor = document.querySelector(".note-editor");
 
-  const noteEditor = createNoteEditor(highlightElement);
+  if (existingEditor) {
+    existingEditor.remove();
+  }
+
+  const noteEditor = createNoteEditor(toolbar);
   const currentNote = highlightElement.dataset.note || "";
-  const title = createTitle(editMode ? "Edit Note" : "Note");
+  const title = createTitle();
 
   noteEditor.appendChild(title);
 
@@ -19,30 +26,28 @@ export function openNoteEditor(highlightElement, editMode = true) {
   document.body.appendChild(noteEditor);
   adjustEditorPosition(noteEditor);
 
-  editorCloseHandler(noteEditor, highlightElement);
-}
-
-function removeExistingEditor() {
-  const existingEditor = document.querySelector(".note-editor");
-
-  if (existingEditor) {
-    existingEditor.remove();
+  if (toolbar) {
+    requestAnimationFrame(() => {
+      noteEditor.classList.add("note-editor--entering");
+    });
   }
 }
 
-function createNoteEditor(highlightElement) {
+function createNoteEditor(toolbar) {
   const noteEditor = document.createElement("div");
 
   noteEditor.className = "note-editor";
 
-  positionNoteEditor(highlightElement, noteEditor);
-  addEventStoppers(noteEditor);
+  if (toolbar) {
+    positionNoteEditor(toolbar, noteEditor);
+  }
 
+  addEventStoppers(noteEditor);
   return noteEditor;
 }
 
-function positionNoteEditor(highlightElement, noteEditor) {
-  const rect = highlightElement.getBoundingClientRect();
+function positionNoteEditor(toolbar, noteEditor) {
+  const rect = toolbar.getBoundingClientRect();
 
   noteEditor.style.top = window.scrollY + rect.bottom + 5 + "px";
   noteEditor.style.left = window.scrollX + rect.left + "px";
@@ -62,82 +67,63 @@ function adjustEditorPosition(noteEditor) {
   }
 }
 
-function createTitle(text) {
+function createTitle() {
   const title = document.createElement("h3");
 
   title.className = "note-editor__title";
-  title.textContent = text;
-
+  title.textContent = "Note";
   return title;
-}
-
-function createButton() {
-  const buttonContainer = document.createElement("div");
-
-  buttonContainer.className = "note-editor__button-container";
-
-  return buttonContainer;
 }
 
 function setupEditMode(noteEditor, highlightElement, currentNote) {
   const textarea = createTextarea(currentNote);
-  const buttonContainer = createButton();
 
   noteEditor.appendChild(textarea);
+  textarea.focus();
 
-  const cancelButton = Button("Cancel", { variant: "secondary" }, () => {
-    noteEditor.remove();
-  });
-
-  const saveButton = Button("Save", { variant: "primary" }, () => {
+  const saveAndSwitchToView = () => {
     const noteText = textarea.value.trim();
 
     saveNote(highlightElement, noteText);
-    noteEditor.remove();
+    switchToViewMode(noteEditor, highlightElement, noteText);
+  };
+
+  textarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      saveAndSwitchToView();
+    }
   });
 
-  buttonContainer.append(cancelButton, saveButton);
-  noteEditor.appendChild(buttonContainer);
+  textarea.addEventListener("blur", saveAndSwitchToView);
+}
 
-  textarea.focus();
+function switchToViewMode(noteEditor, highlightElement, noteText) {
+  const textarea = noteEditor.querySelector(".note-editor__textarea");
+
+  if (textarea) {
+    textarea.remove();
+  }
+
+  setupViewMode(noteEditor, highlightElement, noteText);
 }
 
 function setupViewMode(noteEditor, highlightElement, currentNote) {
   const noteDisplay = createNoteDisplay(currentNote);
-  const hintText = createHintText();
-  const buttonContainer = createButton();
 
   noteEditor.appendChild(noteDisplay);
 
-  noteDisplay.addEventListener("dblclick", (e) => {
+  noteDisplay.addEventListener("click", (e) => {
     e.stopPropagation();
 
-    noteEditor.remove();
-    openNoteEditor(highlightElement, true);
+    const display = noteEditor.querySelector(".note-editor__display");
+
+    if (display) {
+      display.remove();
+    }
+
+    setupEditMode(noteEditor, highlightElement, currentNote);
   });
-
-  noteEditor.appendChild(hintText);
-
-  const deleteButton = Button("Delete", { variant: "danger" }, () => {
-    const highlightId = highlightElement.dataset.id;
-
-    chrome.runtime.sendMessage({
-      action: "update_highlight",
-      payload: {
-        uuid: highlightId,
-        data: {
-          note: "",
-          updatedAt: Date.now(),
-        },
-      },
-    });
-
-    removeNoteIcon(highlightId);
-    noteEditor.remove();
-  });
-
-  buttonContainer.appendChild(deleteButton);
-  noteEditor.appendChild(buttonContainer);
 }
 
 function createTextarea(currentNote) {
@@ -159,7 +145,7 @@ function createNoteDisplay(currentNote) {
 
   if (!currentNote || currentNote.trim() === "") {
     noteDisplay.classList.add("note-editor__display--empty");
-    noteDisplay.textContent = "No notes added yet.";
+    noteDisplay.textContent = "Click to add a note...";
   } else {
     noteDisplay.textContent = currentNote;
   }
@@ -169,33 +155,10 @@ function createNoteDisplay(currentNote) {
   return noteDisplay;
 }
 
-function createHintText() {
-  const hintText = document.createElement("p");
-
-  hintText.className = "note-editor__hint";
-  hintText.textContent = "Double-click to edit";
-
-  return hintText;
-}
-
 function addEventStoppers(element) {
   ["mouseup", "mousedown"].forEach((eventType) => {
     element.addEventListener(eventType, (e) => e.stopPropagation());
   });
-}
-
-function editorCloseHandler(noteEditor, highlightElement, updatePosition) {
-  const closeEditor = (e) => {
-    if (
-      !noteEditor.contains(e.target) &&
-      !highlightElement.contains(e.target)
-    ) {
-      noteEditor.remove();
-      document.removeEventListener("click", closeEditor);
-    }
-  };
-
-  document.addEventListener("click", closeEditor);
 }
 
 export function saveNote(highlightElement, noteText) {
@@ -206,11 +169,13 @@ export function saveNote(highlightElement, noteText) {
     allElements.forEach((element) => {
       element.dataset.note = noteText;
     });
+
     addNoteIcon(highlightElement);
   } else {
     allElements.forEach((element) => {
       delete element.dataset.note;
     });
+
     removeNoteIcon(highlightElement);
   }
 

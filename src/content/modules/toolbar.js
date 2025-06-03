@@ -3,47 +3,100 @@ import { COLORS } from "../../constant/colors";
 import { removeHighlight } from "./highlighter";
 import { openNoteEditor } from "./note-editor";
 
+let currentCloseHandler = null;
+
 export function handleHighlightClick(e) {
   e.stopPropagation();
 
-  const toolbar = document.querySelector(".toolbar");
-
-  if (toolbar) {
-    toolbar.remove();
-  }
+  closeToolbarAndNoteEditor();
 
   const highlightElement = e.currentTarget;
 
   createHighlightToolbar(highlightElement);
 }
 
-export function createHighlightToolbar(highlightElement) {
+export function createHighlightToolbar(
+  highlightElement,
+  showNoteEditor = true
+) {
   const toolbar = createToolbar(highlightElement);
 
   addColorButtons(toolbar, highlightElement);
 
-  const noteButton = Button("✏️ Note", { variant: "secondary" }, () => {
-    openNoteEditor(highlightElement);
-    toolbar.remove();
-  });
+  if (showNoteEditor) {
+    const deleteButton = Button("🗑️ Delete", { variant: "danger" }, () => {
+      removeHighlight(highlightElement);
+      closeToolbarAndNoteEditor();
+    });
 
-  const deleteButton = Button("🗑️ Delete", { variant: "danger" }, () => {
-    removeHighlight(highlightElement);
-    toolbar.remove();
-  });
+    toolbar.appendChild(deleteButton);
+  }
 
-  toolbar.append(noteButton, deleteButton);
   document.body.appendChild(toolbar);
 
   requestAnimationFrame(() => {
     toolbar.classList.add("toolbar-entering");
   });
 
-  toolbarCloseHandler(toolbar, highlightElement);
+  if (showNoteEditor) {
+    setTimeout(() => {
+      openNoteEditor(highlightElement, toolbar, false);
+    }, 150);
+  }
+
+  setupCloseHandler(highlightElement);
+}
+
+function closeToolbarAndNoteEditor() {
+  const toolbar = document.querySelector(".toolbar");
+  const noteEditor = document.querySelector(".note-editor");
+
+  if (noteEditor) {
+    noteEditor.classList.add("note-editor--hiding");
+
+    setTimeout(() => {
+      noteEditor.remove();
+    }, 200);
+  }
+
+  if (toolbar) {
+    toolbar.classList.add("toolbar-hiding");
+
+    setTimeout(() => {
+      toolbar.remove();
+    }, 200);
+  }
+
+  if (currentCloseHandler) {
+    document.removeEventListener("mousedown", currentCloseHandler);
+    currentCloseHandler = null;
+  }
+}
+
+function setupCloseHandler(highlightElement) {
+  if (currentCloseHandler) {
+    document.removeEventListener("mousedown", currentCloseHandler);
+  }
+
+  currentCloseHandler = (e) => {
+    const toolbar = document.querySelector(".toolbar");
+    const noteEditor = document.querySelector(".note-editor");
+
+    if (
+      (!toolbar || !toolbar.contains(e.target)) &&
+      (!noteEditor || !noteEditor.contains(e.target)) &&
+      !highlightElement.contains(e.target)
+    ) {
+      closeToolbarAndNoteEditor();
+    }
+  };
+
+  document.addEventListener("mousedown", currentCloseHandler);
 }
 
 function createToolbar(highlightElement) {
   const toolbar = document.createElement("div");
+
   toolbar.className = "toolbar";
 
   positionToolbar(highlightElement, toolbar);
@@ -57,7 +110,6 @@ function addColorButtons(toolbar, highlightElement) {
 
   COLORS.forEach((color) => {
     const colorButton = document.createElement("div");
-
     colorButton.className = "color-palette-button";
     colorButton.style.backgroundColor = color;
     colorButton.addEventListener("click", () => {
@@ -77,22 +129,11 @@ function addColorButtons(toolbar, highlightElement) {
         },
       });
 
-      toolbar.remove();
+      closeToolbarAndNoteEditor();
     });
 
     toolbar.appendChild(colorButton);
   });
-}
-
-function toolbarCloseHandler(toolbar, highlightElement) {
-  const closeToolbar = (e) => {
-    if (!toolbar.contains(e.target) && !highlightElement.contains(e.target)) {
-      toolbar.classList.add("toolbar-hiding");
-      document.removeEventListener("mousedown", closeToolbar);
-    }
-  };
-
-  document.addEventListener("mousedown", closeToolbar);
 }
 
 function positionToolbar(highlightElement, toolbar) {

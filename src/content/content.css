@@ -216,6 +216,20 @@ span {
   padding: 10px;
   width: 320px;
   z-index: 9999;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.note-editor--entering {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.note-editor--hiding {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  pointer-events: none;
 }
 
 .note-editor__title {
@@ -252,24 +266,11 @@ span {
   word-break: break-word;
   font-size: 14px;
   line-height: 1.5;
+  cursor: pointer;
 }
 
 .note-editor__display--empty {
   color: #999;
-}
-
-.note-editor__hint {
-  margin: 5px 0 0 0;
-  font-size: 12px;
-  color: #888;
-  text-align: center;
-}
-
-.note-editor__button-container {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 10px;
 }
 
 /* Notification */
