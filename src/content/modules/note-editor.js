@@ -99,7 +99,7 @@ function setupEditMode(noteEditor, highlightElement, currentNote) {
     }
   });
 
-  textarea.addEventListener("blur", saveAndSwitchToView);
+  textarea.addEventListener("blur", () => saveAndSwitchToView);
 }
 
 function switchToViewMode(noteEditor, highlightElement, noteText) {
