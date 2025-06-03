@@ -175,6 +175,20 @@ span {
   display: flex;
   align-items: center;
   gap: 8px;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar-entering {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toolbar-hiding {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  pointer-events: none;
 }
 
 /* Color Palette Button */

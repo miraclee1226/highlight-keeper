@@ -35,6 +35,10 @@ function createHighlightToolbar(highlightElement) {
   toolbar.append(noteButton, deleteButton);
   document.body.appendChild(toolbar);
 
+  requestAnimationFrame(() => {
+    toolbar.classList.add("toolbar-entering");
+  });
+
   toolbarCloseHandler(toolbar, highlightElement);
 }
 
@@ -83,7 +87,7 @@ function addColorButtons(toolbar, highlightElement) {
 function toolbarCloseHandler(toolbar, highlightElement) {
   const closeToolbar = (e) => {
     if (!toolbar.contains(e.target) && !highlightElement.contains(e.target)) {
-      toolbar.remove();
+      toolbar.classList.add("toolbar-hiding");
       document.removeEventListener("click", closeToolbar);
     }
   };
