@@ -99,7 +99,7 @@ function createHighlightElement(highlight) {
         <div class="note__highlight">
           <div class="note__dot" style="background-color: ${highlightColor};"></div>
           <p class="note__text--highlight" title="${escapeHtml(highlightText)}">
-            ${escapeHtml(truncateText(highlightText, 100))}
+            ${escapeHtml(highlightText)}
           </p>
         </div>
       </div>
@@ -130,13 +130,6 @@ function formatDate(date) {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}.${month}.${day}`;
-}
-
-function truncateText(text, maxLength) {
-  if (!text) return "No text";
-  if (text.length <= maxLength) return text;
-
-  return text.substring(0, maxLength) + "...";
 }
 
 function escapeHtml(text) {
