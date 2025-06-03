@@ -1,5 +1,6 @@
 import { applyHighlight, restoreHighlight } from "./modules/highlighter";
 import { addNoteIcon } from "./modules/note-icon";
+import { createHighlightToolbar } from "./modules/toolbar";
 
 function restoreHighlights() {
   chrome.runtime.sendMessage(
@@ -110,6 +111,11 @@ function handleHighlighting() {
 
   if (selection.toString().trim().length === 0) return;
 
-  applyHighlight(selection);
+  const highlightElement = applyHighlight(selection);
+
+  if (highlightElement) {
+    createHighlightToolbar(highlightElement);
+  }
+
   selection.removeAllRanges();
 }

@@ -17,7 +17,7 @@ export function handleHighlightClick(e) {
   createHighlightToolbar(highlightElement);
 }
 
-function createHighlightToolbar(highlightElement) {
+export function createHighlightToolbar(highlightElement) {
   const toolbar = createToolbar(highlightElement);
 
   addColorButtons(toolbar, highlightElement);
@@ -88,11 +88,11 @@ function toolbarCloseHandler(toolbar, highlightElement) {
   const closeToolbar = (e) => {
     if (!toolbar.contains(e.target) && !highlightElement.contains(e.target)) {
       toolbar.classList.add("toolbar-hiding");
-      document.removeEventListener("click", closeToolbar);
+      document.removeEventListener("mousedown", closeToolbar);
     }
   };
 
-  document.addEventListener("click", closeToolbar);
+  document.addEventListener("mousedown", closeToolbar);
 }
 
 function positionToolbar(highlightElement, toolbar) {

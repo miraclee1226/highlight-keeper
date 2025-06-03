@@ -2,7 +2,7 @@ import { removeNoteIcon } from "./note-icon";
 import { handleHighlightClick } from "./toolbar";
 
 export function applyHighlight(selection) {
-  if (!selection.rangeCount) return;
+  if (!selection.rangeCount) return null;
 
   const range = selection.getRangeAt(0);
   const text = range.toString();
@@ -10,9 +10,11 @@ export function applyHighlight(selection) {
 
   const originalDOMInfo = getOriginalDOMInfo(range, text);
 
-  applyUnifiedHighlight(range, highlightId);
+  const highlightElements = applyUnifiedHighlight(range, highlightId);
 
   saveHighlightToDatabase(originalDOMInfo, highlightId);
+
+  return highlightElements ? highlightElements[0] : null;
 }
 
 function getOriginalDOMInfo(range, text) {
@@ -222,6 +224,7 @@ function findTextPositionInElement(element, targetOffset) {
 
 function applyUnifiedHighlight(range, highlightId) {
   const textNodes = [];
+  const createdElements = [];
 
   let rootNode = range.commonAncestorContainer;
   if (rootNode.nodeType == Node.TEXT_NODE) {
@@ -248,14 +251,19 @@ function applyUnifiedHighlight(range, highlightId) {
   }
 
   textNodes.forEach((textNode) => {
-    wrapTextNodeSafely(textNode, range, highlightId);
+    const element = wrapTextNodeSafely(textNode, range, highlightId);
+    if (element) {
+      createdElements.push(element);
+    }
   });
+
+  return createdElements;
 }
 
 function wrapTextNodeSafely(textNode, range, highlightId) {
   const intersectionInfo = getTextNodeIntersection(textNode, range);
 
-  if (!intersectionInfo) return;
+  if (!intersectionInfo) return null;
 
   const { startOffset, endOffset } = intersectionInfo;
 
@@ -280,6 +288,8 @@ function wrapTextNodeSafely(textNode, range, highlightId) {
   }
 
   textNode.parentNode.replaceChild(fragment, textNode); // parentNode = null
+
+  return highlightElement;
 }
 
 function getTextNodeIntersection(textNode, range) {
