@@ -232,6 +232,12 @@ span {
   pointer-events: none;
 }
 
+.note-editor--direct {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: none;
+}
+
 .note-editor__title {
   margin: 0 0 10px 0;
   font-size: 16px;

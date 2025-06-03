@@ -8,12 +8,11 @@ export function addNoteIcon(highlightElement) {
   if (existingIcon) return;
 
   const noteIcon = createNoteIcon(highlightElement);
-  document.body.appendChild(noteIcon);
 
   noteIcon.addEventListener("click", function (e) {
     e.stopPropagation();
 
-    openNoteEditor(highlightElement, false);
+    openNoteEditor(highlightElement, null, true);
   });
 }
 
@@ -27,6 +26,8 @@ function createNoteIcon(highlightElement) {
 
   noteIcon.className = "note-icon";
   noteIcon.dataset.highlightId = highlightElement.dataset.id;
+
+  document.body.appendChild(noteIcon);
 
   positionNoteIcon(highlightElement, noteIcon);
 

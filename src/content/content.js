@@ -80,6 +80,7 @@ function renderSinglehighlight(highlight) {
 
     if (highlightElements.length > 0) {
       addNoteIcon(highlightElements[0]);
+
       highlightElements.forEach((element) => {
         element.dataset.note = highlight.note;
       });

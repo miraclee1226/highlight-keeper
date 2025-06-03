@@ -11,7 +11,7 @@ export function openNoteEditor(
     existingEditor.remove();
   }
 
-  const noteEditor = createNoteEditor(toolbar);
+  const noteEditor = createNoteEditor(highlightElement, toolbar);
   const currentNote = highlightElement.dataset.note || "";
   const title = createTitle();
 
@@ -30,24 +30,28 @@ export function openNoteEditor(
     requestAnimationFrame(() => {
       noteEditor.classList.add("note-editor--entering");
     });
+  } else {
+    noteEditor.classList.add("note-editor--direct");
   }
 }
 
-function createNoteEditor(toolbar) {
+function createNoteEditor(highlightElement = null, toolbar) {
   const noteEditor = document.createElement("div");
 
   noteEditor.className = "note-editor";
 
-  if (toolbar) {
-    positionNoteEditor(toolbar, noteEditor);
+  const positionElement = toolbar || highlightElement;
+
+  if (positionElement) {
+    positionNoteEditor(positionElement, noteEditor);
   }
 
   addEventStoppers(noteEditor);
   return noteEditor;
 }
 
-function positionNoteEditor(toolbar, noteEditor) {
-  const rect = toolbar.getBoundingClientRect();
+function positionNoteEditor(positionElement, noteEditor) {
+  const rect = positionElement.getBoundingClientRect();
 
   noteEditor.style.top = window.scrollY + rect.bottom + 5 + "px";
   noteEditor.style.left = window.scrollX + rect.left + "px";
