@@ -136,9 +136,12 @@ function escapeHtml(text) {
   if (!text) return "";
 
   const div = document.createElement("div");
+
   div.textContent = text;
 
-  return div.innerHTML;
+  const escapedText = div.innerHTML;
+
+  return escapedText.replace(/\n/g, "<br>");
 }
 
 function scrollToHighlight(uuid) {
