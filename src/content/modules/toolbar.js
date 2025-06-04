@@ -27,8 +27,10 @@ export function createHighlightToolbar(
 
   addColorButtons(toolbar, highlightElement);
 
-  const noteButton = createNoteButton(highlightElement);
-  toolbar.appendChild(noteButton);
+  if (!showNoteEditor) {
+    const noteButton = createNoteButton(highlightElement);
+    toolbar.appendChild(noteButton);
+  }
 
   // TODO: AI Chat Function
   const bulbButton = createBulbButton(highlightElement);
