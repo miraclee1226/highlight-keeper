@@ -27,9 +27,7 @@ function createToolbarWithoutNoteIcon(
 
   if (!showNoteEditor) {
     const noteButton = createNoteButton(highlightElement);
-
     toolbar.appendChild(noteButton);
-    setupToolbarCloseHandler(highlightElement);
   }
 
   // TODO: AI Chat Function
@@ -38,10 +36,7 @@ function createToolbarWithoutNoteIcon(
 
   if (showNoteEditor) {
     const deleteButton = createDeleteHighlightButton(highlightElement);
-
     toolbar.appendChild(deleteButton);
-
-    setupCombinedCloseHandler(highlightElement);
   }
 
   document.body.appendChild(toolbar);
@@ -54,6 +49,10 @@ function createToolbarWithoutNoteIcon(
     setTimeout(() => {
       openNoteEditor(highlightElement, toolbar, true);
     }, 100);
+
+    setupCombinedCloseHandler(highlightElement);
+  } else {
+    setupToolbarCloseHandler(highlightElement);
   }
 }
 
@@ -131,9 +130,10 @@ export function closeToolbar() {
 
   if (toolbar) {
     toolbar.classList.add("toolbar-hiding");
-
     setTimeout(() => {
-      toolbar.remove();
+      if (toolbar.parentNode) {
+        toolbar.remove();
+      }
     }, 200);
   }
 }
@@ -143,9 +143,10 @@ export function closeNoteEditor() {
 
   if (noteEditor) {
     noteEditor.classList.add("note-editor--hiding");
-
     setTimeout(() => {
-      noteEditor.remove();
+      if (noteEditor.parentNode) {
+        noteEditor.remove();
+      }
     }, 200);
   }
 }

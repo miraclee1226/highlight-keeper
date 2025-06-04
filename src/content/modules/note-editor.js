@@ -1,3 +1,5 @@
+import { closeNoteEditor } from "./toolbar.js";
+
 export function openNoteEditor(
   highlightElement,
   toolbar = null,
@@ -29,9 +31,8 @@ export function openNoteEditor(
     });
   } else {
     noteEditor.classList.add("note-editor--direct");
+    setupNoteEditorCloseHandler(noteEditor, highlightElement);
   }
-
-  setupNoteEditorCloseHandler(noteEditor, highlightElement);
 }
 
 function createNoteEditor(highlightElement = null, toolbar) {
@@ -82,7 +83,12 @@ function setupEditMode(noteEditor, highlightElement, currentNote) {
   noteEditor.appendChild(textarea);
   textarea.focus();
 
+  let isHandled = false; // 중복 실행 방지
+
   const saveAndSwitchToView = () => {
+    if (isHandled) return; // 이미 처리되었으면 중단
+    isHandled = true;
+
     const noteText = textarea.value.trim();
 
     saveNote(highlightElement, noteText);
@@ -90,7 +96,8 @@ function setupEditMode(noteEditor, highlightElement, currentNote) {
     if (noteText) {
       switchToViewMode(noteEditor, highlightElement, noteText);
     } else {
-      noteEditor.remove();
+      // 통일된 제거 방식 사용
+      closeNoteEditor();
     }
   };
 
@@ -166,7 +173,7 @@ function setupNoteEditorCloseHandler(noteEditor, highlightElement) {
       !noteEditor.contains(e.target) &&
       !highlightElement.contains(e.target)
     ) {
-      noteEditor.remove();
+      closeNoteEditor(); // 통일된 제거 방식 사용
       document.removeEventListener("mousedown", closeHandler);
     }
   };
