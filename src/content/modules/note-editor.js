@@ -24,7 +24,6 @@ export function openNoteEditor(
   }
 
   document.body.appendChild(noteEditor);
-  adjustEditorPosition(noteEditor);
 
   if (toolbar) {
     requestAnimationFrame(() => {
@@ -40,35 +39,33 @@ function createNoteEditor(highlightElement = null, toolbar) {
 
   noteEditor.className = "note-editor";
 
-  const positionElement = toolbar || highlightElement;
-
-  if (positionElement) {
-    positionNoteEditor(positionElement, noteEditor);
+  if (highlightElement) {
+    positionNoteEditorBelowHighlight(highlightElement, noteEditor);
   }
 
   addEventStoppers(noteEditor);
   return noteEditor;
 }
 
-function positionNoteEditor(positionElement, noteEditor) {
-  const rect = positionElement.getBoundingClientRect();
+function positionNoteEditorBelowHighlight(highlightElement, noteEditor) {
+  const rect = highlightElement.getBoundingClientRect();
 
   noteEditor.style.top = window.scrollY + rect.bottom + 5 + "px";
   noteEditor.style.left = window.scrollX + rect.left + "px";
-}
 
-function adjustEditorPosition(noteEditor) {
-  const editorRect = noteEditor.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    const editorRect = noteEditor.getBoundingClientRect();
 
-  if (editorRect.right > window.innerWidth) {
-    noteEditor.style.left =
-      window.scrollX + window.innerWidth - editorRect.width - 10 + "px";
-  }
+    if (editorRect.right > window.innerWidth) {
+      noteEditor.style.left =
+        window.scrollX + window.innerWidth - editorRect.width - 10 + "px";
+    }
 
-  if (editorRect.bottom > window.innerHeight) {
-    noteEditor.style.top =
-      window.scrollY + window.innerHeight - editorRect.height - 10 + "px";
-  }
+    if (editorRect.bottom > window.innerHeight) {
+      noteEditor.style.top =
+        window.scrollY + window.innerHeight - editorRect.height - 10 + "px";
+    }
+  });
 }
 
 function createTitle() {
@@ -89,17 +86,15 @@ function setupEditMode(noteEditor, highlightElement, currentNote) {
     const noteText = textarea.value.trim();
 
     saveNote(highlightElement, noteText);
-    switchToViewMode(noteEditor, highlightElement, noteText);
+
+    if (noteText) {
+      switchToViewMode(noteEditor, highlightElement, noteText);
+    } else {
+      noteEditor.remove();
+    }
   };
 
-  textarea.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      saveAndSwitchToView();
-    }
-  });
-
-  textarea.addEventListener("blur", () => saveAndSwitchToView);
+  textarea.addEventListener("blur", saveAndSwitchToView);
 }
 
 function switchToViewMode(noteEditor, highlightElement, noteText) {
@@ -160,7 +155,7 @@ function createNoteDisplay(currentNote) {
 }
 
 function addEventStoppers(element) {
-  ["mouseup", "mousedown"].forEach((eventType) => {
+  ["mouseup", "mousedown", "click"].forEach((eventType) => {
     element.addEventListener(eventType, (e) => e.stopPropagation());
   });
 }
