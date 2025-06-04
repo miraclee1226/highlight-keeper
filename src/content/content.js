@@ -1,5 +1,7 @@
-import { applyHighlight, restoreHighlight } from "./modules/highlighter";
-import { createInitialToolbar } from "./modules/toolbar";
+import {
+  handleHighlighting,
+  restoreHighlightData,
+} from "./modules/highlighter";
 
 function restoreHighlights() {
   chrome.runtime.sendMessage(
@@ -9,7 +11,7 @@ function restoreHighlights() {
     },
     (response) => {
       if (response.action === "get_success") {
-        renderHighlights(response.data);
+        renderAllHighlights(response.data);
       } else if (response.action === "get_error") {
         console.error("Failed to get highlights:", response.error);
       }
@@ -39,13 +41,14 @@ urlChangeObserver.observe(document, {
 });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  // popup.js request
   if (request.action === "start_highlight") {
-    renderHighlights(request.data);
+    renderAllHighlights(request.data);
     sendResponse({ status: "highlighting_started" });
   }
 
   if (request.action === "get_success") {
-    renderHighlights(request.data);
+    renderAllHighlights(request.data);
     sendResponse({ status: "rendered" });
   }
 
@@ -60,29 +63,28 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
-function renderHighlights(highlights) {
+function renderAllHighlights(highlights) {
   if (!highlights || highlights.length === 0) return;
 
   highlights.forEach((highlight, index) => {
     setTimeout(() => {
-      renderSinglehighlight(highlight);
+      renderSingleHighlight(highlight);
     }, index * 100);
   });
 }
 
-function renderSinglehighlight(highlight) {
-  const success = restoreHighlight(highlight);
+function renderSingleHighlight(highlight) {
+  const restoredhighlight = restoreHighlightData(highlight);
+  const note = highlight.note;
 
-  if (success && highlight.note) {
-    const highlightElements = document.querySelectorAll(
+  if (restoredhighlight && note) {
+    const allHighlightElements = document.querySelectorAll(
       `[data-id="${highlight.uuid}"]`
     );
 
-    if (highlightElements.length > 0) {
-      highlightElements.forEach((element) => {
-        element.dataset.note = highlight.note;
-      });
-    }
+    allHighlightElements.forEach((element) => {
+      element.dataset.note = note;
+    });
   }
 }
 
@@ -91,6 +93,7 @@ function scrollToHighlightElement(uuid) {
 
   if (highlightElement.length > 0) {
     const firstElement = highlightElement[0];
+
     firstElement.scrollIntoView({
       behavior: "smooth",
       block: "center",
@@ -98,23 +101,10 @@ function scrollToHighlightElement(uuid) {
 
     highlightElement.forEach((element) => {
       element.classList.add("highlight-flash");
+
       setTimeout(() => {
         element.classList.remove("highlight-flash");
       }, 2000);
     });
   }
-}
-
-function handleHighlighting() {
-  const selection = window.getSelection();
-
-  if (selection.toString().trim().length === 0) return;
-
-  const highlightElement = applyHighlight(selection);
-
-  if (highlightElement) {
-    createInitialToolbar(highlightElement);
-  }
-
-  selection.removeAllRanges();
 }

@@ -2,24 +2,22 @@ import { COLORS } from "../../constant/colors";
 import { removeHighlight } from "./highlighter";
 import { openNoteEditor } from "./note-editor";
 
-let currentCloseHandler = null;
-
 export function createInitialToolbar(highlightElement) {
-  closeToolbarAndNoteEditor();
-  createHighlightToolbar(highlightElement, false);
+  closeAllUI();
+  createToolbarWithoutNoteIcon(highlightElement, false);
 }
 
 export function handleHighlightClick(e) {
   e.stopPropagation();
 
-  closeToolbarAndNoteEditor();
+  closeAllUI();
 
   const highlightElement = e.currentTarget;
 
-  createHighlightToolbar(highlightElement, true);
+  createToolbarWithoutNoteIcon(highlightElement, true);
 }
 
-export function createHighlightToolbar(
+function createToolbarWithoutNoteIcon(
   highlightElement,
   showNoteEditor = false
 ) {
@@ -29,7 +27,9 @@ export function createHighlightToolbar(
 
   if (!showNoteEditor) {
     const noteButton = createNoteButton(highlightElement);
+
     toolbar.appendChild(noteButton);
+    setupToolbarCloseHandler(highlightElement);
   }
 
   // TODO: AI Chat Function
@@ -40,6 +40,8 @@ export function createHighlightToolbar(
     const deleteButton = createDeleteHighlightButton(highlightElement);
 
     toolbar.appendChild(deleteButton);
+
+    setupCombinedCloseHandler(highlightElement);
   }
 
   document.body.appendChild(toolbar);
@@ -53,8 +55,6 @@ export function createHighlightToolbar(
       openNoteEditor(highlightElement, toolbar, true);
     }, 100);
   }
-
-  setupCloseHandler(highlightElement);
 }
 
 function createNoteButton(highlightElement) {
@@ -70,7 +70,7 @@ function createNoteButton(highlightElement) {
 
   noteButton.addEventListener("click", (e) => {
     e.stopPropagation();
-    closeToolbarAndNoteEditor();
+    closeAllUI();
 
     setTimeout(() => {
       openNoteEditor(highlightElement, null, true);
@@ -94,7 +94,7 @@ function createBulbButton(highlightElement) {
   bulbButton.addEventListener("click", (e) => {
     e.stopPropagation();
     console.log("AI insight feature - coming soon");
-    closeToolbarAndNoteEditor();
+    closeAllUI();
   });
 
   return bulbButton;
@@ -115,14 +115,30 @@ function createDeleteHighlightButton(highlightElement) {
     e.stopPropagation();
 
     removeHighlight(highlightElement);
-    closeToolbarAndNoteEditor();
+    closeAllUI();
   });
 
   return deleteButton;
 }
 
-function closeToolbarAndNoteEditor() {
+function closeAllUI() {
+  closeToolbar();
+  closeNoteEditor();
+}
+
+export function closeToolbar() {
   const toolbar = document.querySelector(".toolbar");
+
+  if (toolbar) {
+    toolbar.classList.add("toolbar-hiding");
+
+    setTimeout(() => {
+      toolbar.remove();
+    }, 200);
+  }
+}
+
+export function closeNoteEditor() {
   const noteEditor = document.querySelector(".note-editor");
 
   if (noteEditor) {
@@ -132,23 +148,26 @@ function closeToolbarAndNoteEditor() {
       noteEditor.remove();
     }, 200);
   }
-
-  if (toolbar) {
-    toolbar.classList.add("toolbar-hiding");
-
-    setTimeout(() => {
-      toolbar.remove();
-    }, 200);
-  }
-
-  if (currentCloseHandler) {
-    document.removeEventListener("mousedown", currentCloseHandler);
-    currentCloseHandler = null;
-  }
 }
 
-function setupCloseHandler(highlightElement) {
-  currentCloseHandler = (e) => {
+function setupToolbarCloseHandler(highlightElement) {
+  const closeHandler = (e) => {
+    const toolbar = document.querySelector(".toolbar");
+
+    if (
+      (!toolbar || !toolbar.contains(e.target)) &&
+      !highlightElement.contains(e.target)
+    ) {
+      closeToolbar();
+      document.removeEventListener("mousedown", closeHandler);
+    }
+  };
+
+  document.addEventListener("mousedown", closeHandler);
+}
+
+function setupCombinedCloseHandler(highlightElement) {
+  const closeHandler = (e) => {
     const toolbar = document.querySelector(".toolbar");
     const noteEditor = document.querySelector(".note-editor");
 
@@ -157,11 +176,12 @@ function setupCloseHandler(highlightElement) {
       (!noteEditor || !noteEditor.contains(e.target)) &&
       !highlightElement.contains(e.target)
     ) {
-      closeToolbarAndNoteEditor();
+      closeAllUI();
+      document.removeEventListener("mousedown", closeHandler);
     }
   };
 
-  document.addEventListener("mousedown", currentCloseHandler);
+  document.addEventListener("mousedown", closeHandler);
 }
 
 function createToolbar(highlightElement) {
@@ -199,7 +219,7 @@ function addColorButtons(toolbar, highlightElement) {
         },
       });
 
-      closeToolbarAndNoteEditor();
+      closeAllUI();
     });
 
     toolbar.appendChild(colorButton);

@@ -1,10 +1,25 @@
-import { handleHighlightClick } from "./toolbar";
+import { createInitialToolbar, handleHighlightClick } from "./toolbar";
+
+export function handleHighlighting() {
+  const selection = window.getSelection();
+
+  if (selection.toString().trim().length === 0) return;
+
+  const highlightElement = applyHighlight(selection);
+
+  if (highlightElement) {
+    createInitialToolbar(highlightElement);
+  }
+
+  selection.removeAllRanges();
+}
 
 export function applyHighlight(selection) {
   if (!selection.rangeCount) return null;
 
   const range = selection.getRangeAt(0);
   const text = range.toString();
+
   const highlightId = generateHighlightId();
 
   const originalDOMInfo = getOriginalDOMInfo(range, text);
@@ -154,31 +169,6 @@ function saveHighlightToDatabase(originalDOMInfo, highlightId) {
   });
 }
 
-export function restoreHighlight(highlightData) {
-  const selection = highlightData.selection;
-  const startElement = document.querySelector(selection.startContainerPath);
-  const endElement = document.querySelector(selection.endContainerPath);
-
-  if (!startElement || !endElement) return false;
-
-  const range = getRangeFromRelativeOffset(
-    startElement,
-    endElement,
-    selection.startOffset,
-    selection.endOffset
-  );
-
-  if (!range) return false;
-
-  const restoredText = range.toString();
-
-  if (restoredText !== selection.text) return;
-
-  applyUnifiedHighlight(range, highlightData.uuid);
-
-  return true;
-}
-
 function getRangeFromRelativeOffset(
   startElement,
   endElement,
@@ -219,6 +209,33 @@ function findTextPositionInElement(element, targetOffset) {
   }
 
   return null;
+}
+
+export function restoreHighlightData(highlightData) {
+  const selection = highlightData.selection;
+  const startElement = document.querySelector(selection.startContainerPath);
+  const endElement = document.querySelector(selection.endContainerPath);
+  const startOffset = selection.startOffset;
+  const endOffset = selection.endOffset;
+
+  if (!startElement || !endElement) return false;
+
+  const range = getRangeFromRelativeOffset(
+    startElement,
+    endElement,
+    startOffset,
+    endOffset
+  );
+
+  if (!range) return false;
+
+  const restoredText = range.toString();
+
+  if (restoredText !== selection.text) return false;
+
+  applyUnifiedHighlight(range, highlightData.uuid);
+
+  return true;
 }
 
 function applyUnifiedHighlight(range, highlightId) {
@@ -355,6 +372,7 @@ function createHighlightElement(highlightText, highlightId) {
     const sameIdElements = document.querySelectorAll(
       `[data-id="${highlightId}"]`
     );
+
     sameIdElements.forEach((element) =>
       element.classList.add("highlighted-element--hover")
     );
@@ -364,6 +382,7 @@ function createHighlightElement(highlightText, highlightId) {
     const sameIdElements = document.querySelectorAll(
       `[data-id="${highlightId}"]`
     );
+
     sameIdElements.forEach((element) =>
       element.classList.remove("highlighted-element--hover")
     );
@@ -393,12 +412,12 @@ function removeHighlightElement(highlightElement) {
   const fragment = document.createDocumentFragment();
   const parentNode = highlightElement.parentNode;
 
+  if (!parentNode) return;
+
   while (highlightElement.firstChild) {
     fragment.appendChild(highlightElement.firstChild);
   }
 
-  if (parentNode) {
-    parentNode.replaceChild(fragment, highlightElement);
-    parentNode.normalize();
-  }
+  parentNode.replaceChild(fragment, highlightElement);
+  parentNode.normalize();
 }
