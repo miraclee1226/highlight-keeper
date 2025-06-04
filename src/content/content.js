@@ -115,7 +115,7 @@ function handleHighlighting() {
   const highlightElement = applyHighlight(selection);
 
   if (highlightElement) {
-    createHighlightToolbar(highlightElement);
+    createHighlightToolbar(highlightElement, true); // showNoteEditor = true
   }
 
   selection.removeAllRanges();
