@@ -40,7 +40,7 @@ export function createHighlightToolbar(
 
   if (showNoteEditor) {
     setTimeout(() => {
-      openNoteEditor(highlightElement, toolbar, false);
+      openNoteEditor(highlightElement, toolbar, true);
     }, 150);
   }
 
@@ -99,7 +99,7 @@ function createToolbar(highlightElement) {
 
   toolbar.className = "toolbar";
 
-  positionToolbar(highlightElement, toolbar);
+  positionToolbarAboveHighlight(highlightElement, toolbar);
 
   return toolbar;
 }
@@ -136,9 +136,22 @@ function addColorButtons(toolbar, highlightElement) {
   });
 }
 
-function positionToolbar(highlightElement, toolbar) {
+function positionToolbarAboveHighlight(highlightElement, toolbar) {
   const rect = highlightElement.getBoundingClientRect();
 
-  toolbar.style.top = window.scrollY + rect.bottom + 5 + "px";
+  toolbar.style.top = window.scrollY + rect.top - 50 + "px";
   toolbar.style.left = window.scrollX + rect.left + "px";
+
+  requestAnimationFrame(() => {
+    const toolbarRect = toolbar.getBoundingClientRect();
+
+    if (toolbarRect.right > window.innerWidth) {
+      toolbar.style.left =
+        window.scrollX + window.innerWidth - toolbarRect.width - 10 + "px";
+    }
+
+    if (toolbarRect.top < 0) {
+      toolbar.style.top = window.scrollY + rect.bottom + 5 + "px";
+    }
+  });
 }
