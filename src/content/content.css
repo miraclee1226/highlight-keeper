@@ -170,13 +170,13 @@ span {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
+  box-shadow: 4px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
   display: flex;
   align-items: center;
   gap: 8px;
   opacity: 0;
-  transform: translateY(-10px) scale(0.95);
+  transform: translateY(10px) scale(0.95);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -187,7 +187,7 @@ span {
 
 .toolbar-hiding {
   opacity: 0;
-  transform: translateY(-10px) scale(0.95);
+  transform: translateY(10px) scale(0.95);
   pointer-events: none;
 }
 
@@ -211,7 +211,8 @@ span {
 .note-editor {
   position: absolute;
   background-color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid #ddd;
   border-radius: 8px;
   padding: 10px;
   width: 320px;
