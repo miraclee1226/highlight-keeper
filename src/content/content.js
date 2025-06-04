@@ -1,5 +1,4 @@
 import { applyHighlight, restoreHighlight } from "./modules/highlighter";
-import { addNoteIcon } from "./modules/note-icon";
 import { createInitialToolbar } from "./modules/toolbar";
 
 function restoreHighlights() {
@@ -80,8 +79,6 @@ function renderSinglehighlight(highlight) {
     );
 
     if (highlightElements.length > 0) {
-      addNoteIcon(highlightElements[0]);
-
       highlightElements.forEach((element) => {
         element.dataset.note = highlight.note;
       });

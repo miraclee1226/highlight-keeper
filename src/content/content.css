@@ -65,9 +65,13 @@ span {
 /* Highlight */
 .highlighted-element {
   background-color: #fff59d;
-  border-radius: 2px;
+  border-radius: 1px;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.highlighted-element[data-note]:not([data-note=""]) {
+  border-bottom: 1px solid #999;
 }
 
 .highlighted-element--hover {
@@ -140,46 +144,6 @@ span {
 
 .button--danger:hover {
   background: #d32f2f;
-}
-
-/* Note Icon */
-.note-icon {
-  position: absolute !important;
-  background-color: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  z-index: 9999 !important;
-  width: 20px !important;
-  height: 20px !important;
-  min-width: 20px !important;
-  min-height: 20px !important;
-  max-width: 20px !important;
-  max-height: 20px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  font-size: initial !important;
-  line-height: 1 !important;
-  box-sizing: border-box !important;
-  transform: none !important;
-  transition: transform 0.1s ease !important;
-  display: block !important;
-  overflow: hidden !important;
-}
-
-.note-icon:hover {
-  transform: scale(1.1) !important;
-}
-
-.note-icon img {
-  width: 100% !important;
-  height: 100% !important;
-  display: block !important;
-  object-fit: contain !important;
-  border: none !important;
-  outline: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  box-sizing: border-box !important;
 }
 
 /* Bulb Icon Toolbar Note Icon */

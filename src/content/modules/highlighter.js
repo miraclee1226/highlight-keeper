@@ -1,4 +1,3 @@
-import { removeNoteIcon } from "./note-icon";
 import { handleHighlightClick } from "./toolbar";
 
 export function applyHighlight(selection) {
@@ -384,8 +383,6 @@ export function removeHighlight(highlightElement) {
   });
 
   const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
-
-  removeNoteIcon(highlightId);
 
   allElements.forEach((element) => {
     removeHighlightElement(element);

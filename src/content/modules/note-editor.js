@@ -1,5 +1,3 @@
-import { addNoteIcon, removeNoteIcon } from "./note-icon.js";
-
 export function openNoteEditor(
   highlightElement,
   toolbar = null,
@@ -184,14 +182,10 @@ export function saveNote(highlightElement, noteText) {
     allElements.forEach((element) => {
       element.dataset.note = noteText;
     });
-
-    addNoteIcon(highlightElement);
   } else {
     allElements.forEach((element) => {
       delete element.dataset.note;
     });
-
-    removeNoteIcon(highlightElement);
   }
 
   chrome.runtime.sendMessage({
