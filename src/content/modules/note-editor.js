@@ -32,6 +32,8 @@ export function openNoteEditor(
   } else {
     noteEditor.classList.add("note-editor--direct");
   }
+
+  setupNoteEditorCloseHandler(noteEditor, highlightElement);
 }
 
 function createNoteEditor(highlightElement = null, toolbar) {
@@ -158,6 +160,20 @@ function addEventStoppers(element) {
   ["mouseup", "mousedown", "click"].forEach((eventType) => {
     element.addEventListener(eventType, (e) => e.stopPropagation());
   });
+}
+
+function setupNoteEditorCloseHandler(noteEditor, highlightElement) {
+  const closeHandler = (e) => {
+    if (
+      !noteEditor.contains(e.target) &&
+      !highlightElement.contains(e.target)
+    ) {
+      noteEditor.remove();
+      document.removeEventListener("mousedown", closeHandler);
+    }
+  };
+
+  document.addEventListener("mousedown", closeHandler);
 }
 
 export function saveNote(highlightElement, noteText) {

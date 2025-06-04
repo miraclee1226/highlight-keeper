@@ -1,9 +1,13 @@
-import { Button } from "../../components";
 import { COLORS } from "../../constant/colors";
 import { removeHighlight } from "./highlighter";
 import { openNoteEditor } from "./note-editor";
 
 let currentCloseHandler = null;
+
+export function createInitialToolbar(highlightElement) {
+  closeToolbarAndNoteEditor();
+  createHighlightToolbar(highlightElement, false);
+}
 
 export function handleHighlightClick(e) {
   e.stopPropagation();
@@ -12,22 +16,26 @@ export function handleHighlightClick(e) {
 
   const highlightElement = e.currentTarget;
 
-  createHighlightToolbar(highlightElement);
+  createHighlightToolbar(highlightElement, true);
 }
 
 export function createHighlightToolbar(
   highlightElement,
-  showNoteEditor = true
+  showNoteEditor = false
 ) {
   const toolbar = createToolbar(highlightElement);
 
   addColorButtons(toolbar, highlightElement);
 
+  const noteButton = createNoteButton(highlightElement);
+  toolbar.appendChild(noteButton);
+
+  // TODO: AI Chat Function
+  const bulbButton = createBulbButton(highlightElement);
+  toolbar.appendChild(bulbButton);
+
   if (showNoteEditor) {
-    const deleteButton = Button("🗑️ Delete", { variant: "danger" }, () => {
-      removeHighlight(highlightElement);
-      closeToolbarAndNoteEditor();
-    });
+    const deleteButton = createDeleteHighlightButton(highlightElement);
 
     toolbar.appendChild(deleteButton);
   }
@@ -41,10 +49,74 @@ export function createHighlightToolbar(
   if (showNoteEditor) {
     setTimeout(() => {
       openNoteEditor(highlightElement, toolbar, true);
-    }, 150);
+    }, 100);
   }
 
   setupCloseHandler(highlightElement);
+}
+
+function createNoteButton(highlightElement) {
+  const noteButton = document.createElement("button");
+  const img = document.createElement("img");
+
+  img.src = chrome.runtime.getURL("/public/icons/note.svg");
+  img.alt = "Note Icon";
+  noteButton.appendChild(img);
+
+  noteButton.className = "toolbar-note-icon";
+  noteButton.title = "Add note";
+
+  noteButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeToolbarAndNoteEditor();
+
+    setTimeout(() => {
+      openNoteEditor(highlightElement, null, true);
+    }, 100);
+  });
+
+  return noteButton;
+}
+
+function createBulbButton(highlightElement) {
+  const bulbButton = document.createElement("button");
+  const img = document.createElement("img");
+
+  img.src = chrome.runtime.getURL("/public/icons/bulb.svg");
+  img.alt = "AI Insight Icon";
+  bulbButton.appendChild(img);
+
+  bulbButton.className = "bulb-icon";
+  bulbButton.title = "AI insight (coming soon)";
+
+  bulbButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    console.log("AI insight feature - coming soon");
+    closeToolbarAndNoteEditor();
+  });
+
+  return bulbButton;
+}
+
+function createDeleteHighlightButton(highlightElement) {
+  const deleteButton = document.createElement("button");
+  const img = document.createElement("img");
+
+  img.src = chrome.runtime.getURL("/public/icons/delete.svg");
+  img.alt = "Delete Icon";
+  deleteButton.appendChild(img);
+
+  deleteButton.className = "delete-icon";
+  deleteButton.title = "Delete highlight";
+
+  deleteButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    removeHighlight(highlightElement);
+    closeToolbarAndNoteEditor();
+  });
+
+  return deleteButton;
 }
 
 function closeToolbarAndNoteEditor() {
@@ -74,10 +146,6 @@ function closeToolbarAndNoteEditor() {
 }
 
 function setupCloseHandler(highlightElement) {
-  if (currentCloseHandler) {
-    document.removeEventListener("mousedown", currentCloseHandler);
-  }
-
   currentCloseHandler = (e) => {
     const toolbar = document.querySelector(".toolbar");
     const noteEditor = document.querySelector(".note-editor");

@@ -1,6 +1,6 @@
 import { applyHighlight, restoreHighlight } from "./modules/highlighter";
 import { addNoteIcon } from "./modules/note-icon";
-import { createHighlightToolbar } from "./modules/toolbar";
+import { createInitialToolbar } from "./modules/toolbar";
 
 function restoreHighlights() {
   chrome.runtime.sendMessage(
@@ -20,6 +20,7 @@ function restoreHighlights() {
 
 window.addEventListener("load", () => {
   restoreHighlights();
+  document.addEventListener("mouseup", handleHighlighting);
 });
 
 // Detect URL changes (SPA support)
@@ -40,7 +41,7 @@ urlChangeObserver.observe(document, {
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "start_highlight") {
-    document.addEventListener("mouseup", handleHighlighting);
+    renderHighlights(request.data);
     sendResponse({ status: "highlighting_started" });
   }
 
@@ -115,7 +116,7 @@ function handleHighlighting() {
   const highlightElement = applyHighlight(selection);
 
   if (highlightElement) {
-    createHighlightToolbar(highlightElement, true); // showNoteEditor = true
+    createInitialToolbar(highlightElement);
   }
 
   selection.removeAllRanges();
