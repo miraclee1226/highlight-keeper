@@ -22,7 +22,6 @@
     {
       "resources": [
         "public/icons/note.svg",
-        "public/icons/bolt.svg",
         "public/icons/bulb.svg",
         "public/icons/delete.svg"
       ],
