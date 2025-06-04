@@ -20,7 +20,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["public/icons/note.svg"],
+      "resources": [
+        "public/icons/note.svg",
+        "public/icons/bolt.svg",
+        "public/icons/bulb.svg",
+        "public/icons/delete.svg"
+      ],
       "matches": ["<all_urls>"]
     }
   ]
