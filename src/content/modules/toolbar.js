@@ -9,7 +9,7 @@ import { openNoteEditor } from "./note-editor";
 
 export function createInitialToolbar(selection = null) {
   closeAllUI();
-  createToolbarForSelection(selection);
+  createSelectionToolbar(selection);
 }
 
 export function handleHighlightClick(e) {
@@ -19,114 +19,112 @@ export function handleHighlightClick(e) {
 
   const highlightElement = e.currentTarget;
 
-  createToolbarWithoutNoteIcon(highlightElement, true);
+  createHighlightToolbar(highlightElement);
 }
 
-function createToolbarForSelection(selection) {
+function createSelectionToolbar(selection) {
   if (!selection || !selection.range) return;
 
   const toolbar = createToolbar(null, selection);
 
-  addColorButtons(toolbar, selection);
-
-  const noteButton = createNoteButton();
-  toolbar.appendChild(noteButton);
-
-  // TODO: AI Chat Function
-  const bulbButton = createBulbButton();
-  toolbar.appendChild(bulbButton);
+  addColorButtonsForSelection(toolbar);
+  addNoteButtonForSelection(toolbar);
+  addAIButton(toolbar);
 
   document.body.appendChild(toolbar);
 
-  requestAnimationFrame(() => {
-    toolbar.classList.add("toolbar-entering");
-  });
-
+  animateToolbarEntry(toolbar);
   setupSelectionToolbarCloseHandler();
 }
 
-function createToolbarWithoutNoteIcon(
-  highlightElement,
-  showNoteEditor = false
-) {
+function createHighlightToolbar(highlightElement) {
   const toolbar = createToolbar(highlightElement);
 
-  addColorButtons(toolbar, highlightElement);
-
-  if (!showNoteEditor) {
-    const noteButton = createNoteButton(highlightElement);
-    toolbar.appendChild(noteButton);
-  }
-
-  // TODO: AI Chat Function
-  const bulbButton = createBulbButton(highlightElement);
-  toolbar.appendChild(bulbButton);
-
-  if (showNoteEditor) {
-    const deleteButton = createDeleteHighlightButton(highlightElement);
-    toolbar.appendChild(deleteButton);
-  }
+  addColorButtonsForHighlight(toolbar, highlightElement);
+  addNoteButtonForHighlight(toolbar, highlightElement);
+  addAIButton(toolbar);
+  addDeleteButton(toolbar, highlightElement);
 
   document.body.appendChild(toolbar);
 
-  requestAnimationFrame(() => {
-    toolbar.classList.add("toolbar-entering");
+  animateToolbarEntry(toolbar);
+  setupHighlightToolbarCloseHandler(highlightElement);
+}
+
+function addColorButtonsForSelection(toolbar) {
+  COLORS.forEach((color) => {
+    const colorButton = createColorButton(color, () => {
+      applyHighlightWithColor(color);
+      closeAllUI();
+    });
+    toolbar.appendChild(colorButton);
+  });
+}
+
+function addColorButtonsForHighlight(toolbar, highlightElement) {
+  const highlightId = highlightElement.dataset.id;
+  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
+
+  COLORS.forEach((color) => {
+    const colorButton = createColorButton(color, () => {
+      allElements.forEach((element) => {
+        element.style.backgroundColor = color;
+      });
+
+      chrome.runtime.sendMessage({
+        action: "update_highlight",
+        payload: {
+          uuid: highlightId,
+          data: { color: color, updatedAt: Date.now() },
+        },
+      });
+
+      closeAllUI();
+    });
+
+    toolbar.appendChild(colorButton);
+  });
+}
+
+function createColorButton(color, clickHandler) {
+  const colorButton = document.createElement("div");
+
+  colorButton.className = "color-palette-button";
+  colorButton.style.backgroundColor = color;
+  colorButton.addEventListener("click", clickHandler);
+
+  return colorButton;
+}
+
+function addNoteButtonForSelection(toolbar) {
+  const noteButton = createNoteButton("Add note", () => {
+    const highlightElement = applyHighlightForNote();
+
+    closeAllUI();
+
+    if (highlightElement) {
+      setTimeout(() => {
+        openNoteEditor(highlightElement, null, true);
+      }, 50);
+    }
   });
 
-  if (showNoteEditor) {
+  toolbar.appendChild(noteButton);
+}
+
+function addNoteButtonForHighlight(toolbar, highlightElement) {
+  const noteButton = createNoteButton("Edit note", () => {
+    closeAllUI();
+
     setTimeout(() => {
-      openNoteEditor(highlightElement, toolbar, true);
-    }, 100);
+      openNoteEditor(highlightElement, null, true);
+    }, 50);
+  });
 
-    setupCombinedCloseHandler(highlightElement);
-  } else {
-    setupToolbarCloseHandler(highlightElement);
-  }
+  toolbar.appendChild(noteButton);
 }
 
-function addColorButtons(toolbar, target = null) {
-  if (target && target.dataset && target.dataset.id) {
-    const highlightId = target.dataset.id;
-    const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
-
-    COLORS.forEach((color) => {
-      const colorButton = document.createElement("div");
-
-      colorButton.className = "color-palette-button";
-      colorButton.style.backgroundColor = color;
-      colorButton.addEventListener("click", () => {
-        allElements.forEach((element) => {
-          element.style.backgroundColor = color;
-        });
-
-        chrome.runtime.sendMessage({
-          action: "update_highlight",
-          payload: {
-            uuid: highlightId,
-            data: { color: color, updatedAt: Date.now() },
-          },
-        });
-        closeAllUI();
-      });
-
-      toolbar.appendChild(colorButton);
-    });
-  } else {
-    COLORS.forEach((color) => {
-      const colorButton = document.createElement("div");
-
-      colorButton.className = "color-palette-button";
-      colorButton.style.backgroundColor = color;
-      colorButton.addEventListener("click", () => {
-        applyHighlightWithColor(color);
-        closeAllUI();
-      });
-
-      toolbar.appendChild(colorButton);
-    });
-  }
-}
-function createNoteButton() {
+function createNoteButton(title, clickHandler) {
   const noteButton = document.createElement("button");
   const img = document.createElement("img");
 
@@ -135,27 +133,17 @@ function createNoteButton() {
   noteButton.appendChild(img);
 
   noteButton.className = "toolbar-note-icon";
-  noteButton.title = "Add note";
-
+  noteButton.title = title;
   noteButton.addEventListener("click", (e) => {
     e.stopPropagation();
 
-    const highlightElement = applyHighlightForNote();
-
-    closeAllUI();
-
-    if (highlightElement) {
-      setTimeout(() => {
-        openNoteEditor(highlightElement, null, true);
-      }, 100);
-    }
+    clickHandler();
   });
 
   return noteButton;
 }
 
-// TODO: AI Feature
-function createBulbButton() {
+function addAIButton(toolbar) {
   const bulbButton = document.createElement("button");
   const img = document.createElement("img");
 
@@ -168,15 +156,14 @@ function createBulbButton() {
 
   bulbButton.addEventListener("click", (e) => {
     e.stopPropagation();
-
     closeAllUI();
     cancelSelection();
   });
 
-  return bulbButton;
+  toolbar.appendChild(bulbButton);
 }
 
-function createDeleteHighlightButton(highlightElement) {
+function addDeleteButton(toolbar, highlightElement) {
   const deleteButton = document.createElement("button");
   const img = document.createElement("img");
 
@@ -194,86 +181,7 @@ function createDeleteHighlightButton(highlightElement) {
     closeAllUI();
   });
 
-  return deleteButton;
-}
-
-function closeAllUI() {
-  closeToolbar();
-  closeNoteEditor();
-}
-
-export function closeToolbar() {
-  const toolbar = document.querySelector(".toolbar");
-
-  if (toolbar) {
-    toolbar.classList.add("toolbar-hiding");
-    setTimeout(() => {
-      if (toolbar.parentNode) {
-        toolbar.remove();
-      }
-    }, 200);
-  }
-}
-
-export function closeNoteEditor() {
-  const noteEditor = document.querySelector(".note-editor");
-
-  if (noteEditor) {
-    noteEditor.classList.add("note-editor--hiding");
-    setTimeout(() => {
-      if (noteEditor.parentNode) {
-        noteEditor.remove();
-      }
-    }, 200);
-  }
-}
-
-function setupSelectionToolbarCloseHandler() {
-  const closeHandler = (e) => {
-    const toolbar = document.querySelector(".toolbar");
-
-    if (!toolbar || !toolbar.contains(e.target)) {
-      closeToolbar();
-      cancelSelection();
-      document.removeEventListener("mousedown", closeHandler);
-    }
-  };
-
-  document.addEventListener("mousedown", closeHandler);
-}
-
-function setupToolbarCloseHandler(highlightElement) {
-  const closeHandler = (e) => {
-    const toolbar = document.querySelector(".toolbar");
-
-    if (
-      (!toolbar || !toolbar.contains(e.target)) &&
-      !highlightElement.contains(e.target)
-    ) {
-      closeToolbar();
-      document.removeEventListener("mousedown", closeHandler);
-    }
-  };
-
-  document.addEventListener("mousedown", closeHandler);
-}
-
-function setupCombinedCloseHandler(highlightElement) {
-  const closeHandler = (e) => {
-    const toolbar = document.querySelector(".toolbar");
-    const noteEditor = document.querySelector(".note-editor");
-
-    if (
-      (!toolbar || !toolbar.contains(e.target)) &&
-      (!noteEditor || !noteEditor.contains(e.target)) &&
-      !highlightElement.contains(e.target)
-    ) {
-      closeAllUI();
-      document.removeEventListener("mousedown", closeHandler);
-    }
-  };
-
-  document.addEventListener("mousedown", closeHandler);
+  toolbar.appendChild(deleteButton);
 }
 
 function createToolbar(highlightElement, selection = null) {
@@ -288,6 +196,74 @@ function createToolbar(highlightElement, selection = null) {
   }
 
   return toolbar;
+}
+
+function animateToolbarEntry(toolbar) {
+  requestAnimationFrame(() => {
+    toolbar.classList.add("toolbar-entering");
+  });
+}
+
+function setupSelectionToolbarCloseHandler() {
+  const closeHandler = (e) => {
+    const toolbar = document.querySelector(".toolbar");
+    if (!toolbar || !toolbar.contains(e.target)) {
+      closeToolbar();
+      cancelSelection();
+      document.removeEventListener("mousedown", closeHandler);
+    }
+  };
+
+  document.addEventListener("mousedown", closeHandler);
+}
+
+function setupHighlightToolbarCloseHandler(highlightElement) {
+  const closeHandler = (e) => {
+    const toolbar = document.querySelector(".toolbar");
+    if (
+      (!toolbar || !toolbar.contains(e.target)) &&
+      !highlightElement.contains(e.target)
+    ) {
+      closeToolbar();
+
+      document.removeEventListener("mousedown", closeHandler);
+    }
+  };
+
+  document.addEventListener("mousedown", closeHandler);
+}
+
+function closeAllUI() {
+  closeToolbar();
+  closeNoteEditor();
+}
+
+export function closeToolbar() {
+  const toolbar = document.querySelector(".toolbar");
+
+  if (toolbar) {
+    toolbar.classList.add("toolbar-hiding");
+
+    setTimeout(() => {
+      if (toolbar.parentNode) {
+        toolbar.remove();
+      }
+    }, 200);
+  }
+}
+
+export function closeNoteEditor() {
+  const noteEditor = document.querySelector(".note-editor");
+
+  if (noteEditor) {
+    noteEditor.classList.add("note-editor--hiding");
+
+    setTimeout(() => {
+      if (noteEditor.parentNode) {
+        noteEditor.remove();
+      }
+    }, 200);
+  }
 }
 
 function positionToolbarAboveSelection(range, toolbar) {
