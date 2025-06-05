@@ -19,8 +19,21 @@ function restoreHighlights() {
   );
 }
 
+function safeExecute(callback) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", callback);
+  } else {
+    callback();
+  }
+}
+
+safeExecute(restoreHighlights);
+
 window.addEventListener("load", () => {
-  restoreHighlights();
+  setTimeout(() => restoreHighlights(), 1000);
+});
+
+safeExecute(() => {
   document.addEventListener("mouseup", handleHighlighting);
 });
 
@@ -41,12 +54,6 @@ urlChangeObserver.observe(document, {
 });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  // popup.js request
-  if (request.action === "start_highlight") {
-    renderAllHighlights(request.data);
-    sendResponse({ status: "highlighting_started" });
-  }
-
   if (request.action === "get_success") {
     renderAllHighlights(request.data);
     sendResponse({ status: "rendered" });
@@ -77,14 +84,16 @@ function renderSingleHighlight(highlight) {
   const restoredhighlight = restoreHighlightData(highlight);
   const note = highlight.note;
 
-  if (restoredhighlight && note) {
+  if (restoredhighlight) {
     const allHighlightElements = document.querySelectorAll(
       `[data-id="${highlight.uuid}"]`
     );
 
-    allHighlightElements.forEach((element) => {
-      element.dataset.note = note;
-    });
+    if (note) {
+      allHighlightElements.forEach((element) => {
+        element.dataset.note = note;
+      });
+    }
   }
 }
 
