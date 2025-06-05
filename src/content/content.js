@@ -34,7 +34,12 @@ window.addEventListener("load", () => {
 });
 
 safeExecute(() => {
-  document.addEventListener("mouseup", handleHighlighting);
+  document.addEventListener("mouseup", (e) => {
+    if (e.target.closest(".toolbar") || e.target.closest(".note-editor"))
+      return;
+
+    handleHighlighting();
+  });
 });
 
 // Detect URL changes (SPA support)
