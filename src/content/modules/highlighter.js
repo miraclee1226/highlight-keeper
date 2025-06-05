@@ -1,34 +1,53 @@
 import { createInitialToolbar, handleHighlightClick } from "./toolbar";
 
+let currentSelection = null;
+
 export function handleHighlighting() {
   const selection = window.getSelection();
 
   if (selection.toString().trim().length === 0) return;
 
-  const highlightElement = applyHighlight(selection);
+  currentSelection = {
+    text: selection.toString(),
+    range: selection.getRangeAt(0).cloneRange(),
+  };
 
-  if (highlightElement) {
-    createInitialToolbar(highlightElement);
-  }
-
-  selection.removeAllRanges();
+  createInitialToolbar(currentSelection);
 }
 
-export function applyHighlight(selection) {
-  if (!selection.rangeCount) return null;
+export function applyHighlightWithColor(color) {
+  if (!currentSelection) return null;
 
-  const range = selection.getRangeAt(0);
-  const text = range.toString();
+  const selection = window.getSelection();
+  if (selection.rangeCount > 0) {
+    selection.removeAllRanges();
+  }
 
   const highlightId = generateHighlightId();
+  const originalDOMInfo = getOriginalDOMInfo(
+    currentSelection.range,
+    currentSelection.text
+  );
 
-  const originalDOMInfo = getOriginalDOMInfo(range, text);
+  if (!originalDOMInfo) return null;
 
-  const highlightElements = applyUnifiedHighlight(range, highlightId);
+  const highlightElements = applyUnifiedHighlight(
+    currentSelection.range,
+    highlightId,
+    color
+  );
 
-  saveHighlightToDatabase(originalDOMInfo, highlightId);
+  saveHighlightToDatabase(originalDOMInfo, highlightId, color);
+
+  currentSelection = null;
 
   return highlightElements ? highlightElements[0] : null;
+}
+
+export function applyHighlightForNote() {
+  const defaultColor = "rgb(255, 245, 157)";
+
+  return applyHighlightWithColor(defaultColor);
 }
 
 function getOriginalDOMInfo(range, text) {
@@ -114,7 +133,6 @@ function getElementPath(element) {
   }
 
   const finalPath = path.join(" > ");
-
   return finalPath;
 }
 
@@ -136,14 +154,13 @@ function getRelativeOffset(parentElement, textContainer, offset) {
     if (node === textContainer) {
       return totalOffset + offset;
     }
-
     totalOffset += node.textContent.length;
   }
 
   return offset;
 }
 
-function saveHighlightToDatabase(originalDOMInfo, highlightId) {
+function saveHighlightToDatabase(originalDOMInfo, highlightId, color) {
   if (!originalDOMInfo) return;
 
   const highlightData = {
@@ -156,7 +173,7 @@ function saveHighlightToDatabase(originalDOMInfo, highlightId) {
       endOffset: originalDOMInfo.endOffset,
       text: originalDOMInfo.text,
     },
-    color: "rgb(255, 245, 157)",
+    color: color,
     note: "",
     version: "1.0.0",
     createdAt: Date.now(),
@@ -233,12 +250,16 @@ export function restoreHighlightData(highlightData) {
 
   if (restoredText !== selection.text) return false;
 
-  applyUnifiedHighlight(range, highlightData.uuid);
+  applyUnifiedHighlight(range, highlightData.uuid, highlightData.color);
 
   return true;
 }
 
-function applyUnifiedHighlight(range, highlightId) {
+function applyUnifiedHighlight(
+  range,
+  highlightId,
+  color = "rgb(255, 245, 157)"
+) {
   const textNodes = [];
   const createdElements = [];
 
@@ -267,7 +288,7 @@ function applyUnifiedHighlight(range, highlightId) {
   }
 
   textNodes.forEach((textNode) => {
-    const element = wrapTextNodeSafely(textNode, range, highlightId);
+    const element = wrapTextNodeSafely(textNode, range, highlightId, color);
     if (element) {
       createdElements.push(element);
     }
@@ -276,7 +297,7 @@ function applyUnifiedHighlight(range, highlightId) {
   return createdElements;
 }
 
-function wrapTextNodeSafely(textNode, range, highlightId) {
+function wrapTextNodeSafely(textNode, range, highlightId, color) {
   const intersectionInfo = getTextNodeIntersection(textNode, range);
 
   if (!intersectionInfo) return null;
@@ -294,7 +315,11 @@ function wrapTextNodeSafely(textNode, range, highlightId) {
     fragment.appendChild(document.createTextNode(beforeText));
   }
 
-  const highlightElement = createHighlightElement(highlightText, highlightId);
+  const highlightElement = createHighlightElement(
+    highlightText,
+    highlightId,
+    color
+  );
 
   highlightElement.addEventListener("click", handleHighlightClick);
   fragment.appendChild(highlightElement);
@@ -355,11 +380,10 @@ function calculateEndOffset(textNode, range, textLength) {
 
 function generateHighlightId() {
   const randomId = crypto.randomUUID();
-
   return "highlight-" + randomId;
 }
 
-function createHighlightElement(highlightText, highlightId) {
+function createHighlightElement(highlightText, highlightId, color) {
   const span = document.createElement("span");
 
   span.className = "highlighted-element";
@@ -367,6 +391,7 @@ function createHighlightElement(highlightText, highlightId) {
   span.dataset.id = highlightId;
   span.dataset.timestamp = new Date().toISOString();
   span.dataset.url = window.location.href;
+  span.style.backgroundColor = color;
 
   span.addEventListener("mouseenter", () => {
     const sameIdElements = document.querySelectorAll(
@@ -420,4 +445,8 @@ function removeHighlightElement(highlightElement) {
 
   parentNode.replaceChild(fragment, highlightElement);
   parentNode.normalize();
+}
+
+export function cancelSelection() {
+  currentSelection = null;
 }

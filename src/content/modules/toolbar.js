@@ -1,10 +1,15 @@
 import { COLORS } from "../../constant/colors";
-import { removeHighlight } from "./highlighter";
+import {
+  removeHighlight,
+  applyHighlightWithColor,
+  applyHighlightForNote,
+  cancelSelection,
+} from "./highlighter";
 import { openNoteEditor } from "./note-editor";
 
-export function createInitialToolbar(highlightElement) {
+export function createInitialToolbar(selection = null) {
   closeAllUI();
-  createToolbarWithoutNoteIcon(highlightElement, false);
+  createToolbarForSelection(selection);
 }
 
 export function handleHighlightClick(e) {
@@ -15,6 +20,29 @@ export function handleHighlightClick(e) {
   const highlightElement = e.currentTarget;
 
   createToolbarWithoutNoteIcon(highlightElement, true);
+}
+
+function createToolbarForSelection(selection) {
+  if (!selection || !selection.range) return;
+
+  const toolbar = createToolbar(null, selection);
+
+  addColorButtons(toolbar, selection);
+
+  const noteButton = createNoteButton();
+  toolbar.appendChild(noteButton);
+
+  // TODO: AI Chat Function
+  const bulbButton = createBulbButton();
+  toolbar.appendChild(bulbButton);
+
+  document.body.appendChild(toolbar);
+
+  requestAnimationFrame(() => {
+    toolbar.classList.add("toolbar-entering");
+  });
+
+  setupSelectionToolbarCloseHandler();
 }
 
 function createToolbarWithoutNoteIcon(
@@ -56,7 +84,49 @@ function createToolbarWithoutNoteIcon(
   }
 }
 
-function createNoteButton(highlightElement) {
+function addColorButtons(toolbar, target = null) {
+  if (target && target.dataset && target.dataset.id) {
+    const highlightId = target.dataset.id;
+    const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
+
+    COLORS.forEach((color) => {
+      const colorButton = document.createElement("div");
+
+      colorButton.className = "color-palette-button";
+      colorButton.style.backgroundColor = color;
+      colorButton.addEventListener("click", () => {
+        allElements.forEach((element) => {
+          element.style.backgroundColor = color;
+        });
+
+        chrome.runtime.sendMessage({
+          action: "update_highlight",
+          payload: {
+            uuid: highlightId,
+            data: { color: color, updatedAt: Date.now() },
+          },
+        });
+        closeAllUI();
+      });
+
+      toolbar.appendChild(colorButton);
+    });
+  } else {
+    COLORS.forEach((color) => {
+      const colorButton = document.createElement("div");
+
+      colorButton.className = "color-palette-button";
+      colorButton.style.backgroundColor = color;
+      colorButton.addEventListener("click", () => {
+        applyHighlightWithColor(color);
+        closeAllUI();
+      });
+
+      toolbar.appendChild(colorButton);
+    });
+  }
+}
+function createNoteButton() {
   const noteButton = document.createElement("button");
   const img = document.createElement("img");
 
@@ -69,17 +139,23 @@ function createNoteButton(highlightElement) {
 
   noteButton.addEventListener("click", (e) => {
     e.stopPropagation();
+
+    const highlightElement = applyHighlightForNote();
+
     closeAllUI();
 
-    setTimeout(() => {
-      openNoteEditor(highlightElement, null, true);
-    }, 100);
+    if (highlightElement) {
+      setTimeout(() => {
+        openNoteEditor(highlightElement, null, true);
+      }, 100);
+    }
   });
 
   return noteButton;
 }
 
-function createBulbButton(highlightElement) {
+// TODO: AI Feature
+function createBulbButton() {
   const bulbButton = document.createElement("button");
   const img = document.createElement("img");
 
@@ -92,8 +168,9 @@ function createBulbButton(highlightElement) {
 
   bulbButton.addEventListener("click", (e) => {
     e.stopPropagation();
-    console.log("AI insight feature - coming soon");
+
     closeAllUI();
+    cancelSelection();
   });
 
   return bulbButton;
@@ -151,6 +228,20 @@ export function closeNoteEditor() {
   }
 }
 
+function setupSelectionToolbarCloseHandler() {
+  const closeHandler = (e) => {
+    const toolbar = document.querySelector(".toolbar");
+
+    if (!toolbar || !toolbar.contains(e.target)) {
+      closeToolbar();
+      cancelSelection();
+      document.removeEventListener("mousedown", closeHandler);
+    }
+  };
+
+  document.addEventListener("mousedown", closeHandler);
+}
+
 function setupToolbarCloseHandler(highlightElement) {
   const closeHandler = (e) => {
     const toolbar = document.querySelector(".toolbar");
@@ -185,45 +276,37 @@ function setupCombinedCloseHandler(highlightElement) {
   document.addEventListener("mousedown", closeHandler);
 }
 
-function createToolbar(highlightElement) {
+function createToolbar(highlightElement, selection = null) {
   const toolbar = document.createElement("div");
 
   toolbar.className = "toolbar";
 
-  positionToolbarAboveHighlight(highlightElement, toolbar);
+  if (highlightElement) {
+    positionToolbarAboveHighlight(highlightElement, toolbar);
+  } else if (selection && selection.range) {
+    positionToolbarAboveSelection(selection.range, toolbar);
+  }
 
   return toolbar;
 }
 
-function addColorButtons(toolbar, highlightElement) {
-  const highlightId = highlightElement.dataset.id;
-  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
+function positionToolbarAboveSelection(range, toolbar) {
+  const rect = range.getBoundingClientRect();
 
-  COLORS.forEach((color) => {
-    const colorButton = document.createElement("div");
-    colorButton.className = "color-palette-button";
-    colorButton.style.backgroundColor = color;
-    colorButton.addEventListener("click", () => {
-      allElements.forEach((element) => {
-        element.style.backgroundColor = color;
-        element.dataset.color = color;
-      });
+  toolbar.style.top = window.scrollY + rect.top - 50 + "px";
+  toolbar.style.left = window.scrollX + rect.left + "px";
 
-      chrome.runtime.sendMessage({
-        action: "update_highlight",
-        payload: {
-          uuid: highlightId,
-          data: {
-            color: color,
-            updatedAt: Date.now(),
-          },
-        },
-      });
+  requestAnimationFrame(() => {
+    const toolbarRect = toolbar.getBoundingClientRect();
 
-      closeAllUI();
-    });
+    if (toolbarRect.right > window.innerWidth) {
+      toolbar.style.left =
+        window.scrollX + window.innerWidth - toolbarRect.width - 10 + "px";
+    }
 
-    toolbar.appendChild(colorButton);
+    if (toolbarRect.top < 0) {
+      toolbar.style.top = window.scrollY + rect.bottom + 5 + "px";
+    }
   });
 }
 
