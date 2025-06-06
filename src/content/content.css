@@ -146,31 +146,33 @@ span {
   background: #d32f2f;
 }
 
-/* Bulb Icon Toolbar Note Icon */
-.bulb-icon,
-.toolbar-note-icon,
-.delete-icon {
+/* Icons in toolbar */
+.bulb-button,
+.note-button,
+.delete-button {
   border: none;
   cursor: pointer;
-  width: 24px;
-  height: 24px;
+  height: 25px;
+  padding: 0 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.1s ease;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
 
-.bulb-icon:hover,
-.toolbar-note-icon:hover,
-.delete-icon:hover {
-  transform: scale(1.1);
+.bulb-button:hover,
+.note-button:hover,
+.delete-button:hover {
+  border-radius: 5px;
+  background-color: rgba(83, 83, 83, 0.05);
 }
 
-.bulb-icon img,
-.toolbar-note-icon img,
-.delete-icon img {
-  width: 100%;
-  height: 100%;
+.bulb-button img,
+.note-button img,
+.delete-button img {
+  width: 20px;
+  height: 20px;
 }
 
 /* Toolbar */
@@ -184,11 +186,17 @@ span {
   z-index: 999;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   opacity: 0;
   transform: translateY(10px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: visible;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background-color: #e6e6e6;
 }
 
 .toolbar-entering {

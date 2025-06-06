@@ -27,8 +27,10 @@ function createSelectionToolbar(selection) {
   const toolbar = createToolbar(null, selection);
 
   addColorPaletteForSelection(toolbar);
+  addDivider(toolbar);
   addNoteButtonForSelection(toolbar);
-  addAIButton(toolbar);
+  addDivider(toolbar);
+  createAIButton(toolbar);
 
   document.body.appendChild(toolbar);
 
@@ -40,16 +42,18 @@ function createHighlightToolbar(highlightElement) {
   const toolbar = createToolbar(highlightElement);
 
   addColorPaletteForHighlight(toolbar, highlightElement);
+  addDivider(toolbar);
   addNoteButtonForHighlight(toolbar, highlightElement);
-  addAIButton(toolbar);
-  addDeleteButton(toolbar, highlightElement);
+  addDivider(toolbar);
+  createAIButton(toolbar);
+  addDivider(toolbar);
+  createDeleteButton(toolbar, highlightElement);
 
   document.body.appendChild(toolbar);
 
   animateToolbarEntry(toolbar);
   setupHighlightToolbarCloseHandler(highlightElement);
 }
-
 function addColorPaletteForSelection(toolbar) {
   const colorPalette = createColorPalette(() => {
     return (color) => {
@@ -151,7 +155,7 @@ function createColorButton(color, clickHandler) {
 }
 
 function addNoteButtonForSelection(toolbar) {
-  const noteButton = createNoteButton("Add note", () => {
+  const noteButton = createNoteButton(() => {
     const highlightElement = applyHighlight(COLORS[0]);
 
     closeAllUI();
@@ -167,7 +171,7 @@ function addNoteButtonForSelection(toolbar) {
 }
 
 function addNoteButtonForHighlight(toolbar, highlightElement) {
-  const noteButton = createNoteButton("Edit note", () => {
+  const noteButton = createNoteButton(() => {
     closeAllUI();
 
     setTimeout(() => {
@@ -178,16 +182,21 @@ function addNoteButtonForHighlight(toolbar, highlightElement) {
   toolbar.appendChild(noteButton);
 }
 
-function createNoteButton(title, clickHandler) {
+function createNoteButton(clickHandler) {
   const noteButton = document.createElement("button");
   const img = document.createElement("img");
+  const text = document.createElement("span");
 
   img.src = chrome.runtime.getURL("/public/icons/note.svg");
   img.alt = "Note Icon";
-  noteButton.appendChild(img);
 
-  noteButton.className = "toolbar-note-icon";
-  noteButton.title = title;
+  noteButton.appendChild(img);
+  noteButton.appendChild(text);
+
+  noteButton.className = "note-button";
+
+  text.textContent = "Note";
+
   noteButton.addEventListener("click", (e) => {
     e.stopPropagation();
 
@@ -197,19 +206,24 @@ function createNoteButton(title, clickHandler) {
   return noteButton;
 }
 
-function addAIButton(toolbar) {
+function createAIButton(toolbar) {
   const bulbButton = document.createElement("button");
   const img = document.createElement("img");
+  const text = document.createElement("span");
 
   img.src = chrome.runtime.getURL("/public/icons/bulb.svg");
   img.alt = "AI Insight Icon";
-  bulbButton.appendChild(img);
 
-  bulbButton.className = "bulb-icon";
-  bulbButton.title = "AI insight (coming soon)";
+  text.textContent = "Ask AI";
+
+  bulbButton.appendChild(img);
+  bulbButton.appendChild(text);
+
+  bulbButton.className = "bulb-button";
 
   bulbButton.addEventListener("click", (e) => {
     e.stopPropagation();
+
     closeAllUI();
     cancelSelection();
   });
@@ -217,16 +231,20 @@ function addAIButton(toolbar) {
   toolbar.appendChild(bulbButton);
 }
 
-function addDeleteButton(toolbar, highlightElement) {
+function createDeleteButton(toolbar, highlightElement) {
   const deleteButton = document.createElement("button");
   const img = document.createElement("img");
+  const text = document.createElement("span");
 
   img.src = chrome.runtime.getURL("/public/icons/delete.svg");
   img.alt = "Delete Icon";
-  deleteButton.appendChild(img);
 
-  deleteButton.className = "delete-icon";
-  deleteButton.title = "Delete highlight";
+  text.textContent = "Delete";
+
+  deleteButton.appendChild(img);
+  deleteButton.appendChild(text);
+
+  deleteButton.className = "delete-button";
 
   deleteButton.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -250,6 +268,13 @@ function createToolbar(highlightElement, selection = null) {
   }
 
   return toolbar;
+}
+
+function addDivider(toolbar) {
+  const divider = document.createElement("div");
+
+  divider.className = "toolbar-divider";
+  toolbar.appendChild(divider);
 }
 
 function animateToolbarEntry(toolbar) {
