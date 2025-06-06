@@ -162,7 +162,7 @@ function addNoteButtonForSelection(toolbar) {
 
     if (highlightElement) {
       setTimeout(() => {
-        openNoteEditor(highlightElement, null, true);
+        openNoteEditor(highlightElement, toolbar, true);
       }, 50);
     }
   });
@@ -175,7 +175,7 @@ function addNoteButtonForHighlight(toolbar, highlightElement) {
     closeAllUI();
 
     setTimeout(() => {
-      openNoteEditor(highlightElement, null, true);
+      openNoteEditor(highlightElement, toolbar, true);
     }, 50);
   });
 
@@ -279,7 +279,7 @@ function addDivider(toolbar) {
 
 function animateToolbarEntry(toolbar) {
   requestAnimationFrame(() => {
-    toolbar.classList.add("toolbar-entering");
+    toolbar.classList.add("toolbar--entering");
   });
 }
 
@@ -321,7 +321,7 @@ export function closeToolbar() {
   const toolbar = document.querySelector(".toolbar");
 
   if (toolbar) {
-    toolbar.classList.add("toolbar-hiding");
+    toolbar.classList.add("toolbar--hiding");
 
     setTimeout(() => {
       if (toolbar.parentNode) {
