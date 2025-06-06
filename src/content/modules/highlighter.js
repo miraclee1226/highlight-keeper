@@ -15,7 +15,7 @@ export function handleHighlighting() {
   createInitialToolbar(currentSelection);
 }
 
-export function applyHighlightWithColor(color) {
+export function applyHighlight(color) {
   if (!currentSelection) return null;
 
   const selection = window.getSelection();
@@ -42,12 +42,6 @@ export function applyHighlightWithColor(color) {
   currentSelection = null;
 
   return highlightElements ? highlightElements[0] : null;
-}
-
-export function applyHighlightForNote() {
-  const defaultColor = "rgb(255, 245, 157)";
-
-  return applyHighlightWithColor(defaultColor);
 }
 
 function getOriginalDOMInfo(range, text) {

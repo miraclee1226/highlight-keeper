@@ -1,8 +1,7 @@
 import { COLORS } from "../../constant/colors";
 import {
   removeHighlight,
-  applyHighlightWithColor,
-  applyHighlightForNote,
+  applyHighlight,
   cancelSelection,
 } from "./highlighter";
 import { openNoteEditor } from "./note-editor";
@@ -27,7 +26,7 @@ function createSelectionToolbar(selection) {
 
   const toolbar = createToolbar(null, selection);
 
-  addColorButtonsForSelection(toolbar);
+  addColorPaletteForSelection(toolbar);
   addNoteButtonForSelection(toolbar);
   addAIButton(toolbar);
 
@@ -40,7 +39,7 @@ function createSelectionToolbar(selection) {
 function createHighlightToolbar(highlightElement) {
   const toolbar = createToolbar(highlightElement);
 
-  addColorButtonsForHighlight(toolbar, highlightElement);
+  addColorPaletteForHighlight(toolbar, highlightElement);
   addNoteButtonForHighlight(toolbar, highlightElement);
   addAIButton(toolbar);
   addDeleteButton(toolbar, highlightElement);
@@ -51,24 +50,28 @@ function createHighlightToolbar(highlightElement) {
   setupHighlightToolbarCloseHandler(highlightElement);
 }
 
-function addColorButtonsForSelection(toolbar) {
-  COLORS.forEach((color) => {
-    const colorButton = createColorButton(color, () => {
-      applyHighlightWithColor(color);
+function addColorPaletteForSelection(toolbar) {
+  const colorPalette = createColorPalette(() => {
+    return (color) => {
+      applyHighlight(color);
       closeAllUI();
-    });
-    toolbar.appendChild(colorButton);
+    };
   });
+
+  toolbar.appendChild(colorPalette);
 }
 
-function addColorButtonsForHighlight(toolbar, highlightElement) {
+function addColorPaletteForHighlight(toolbar, highlightElement) {
   const highlightId = highlightElement.dataset.id;
   const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
 
-  COLORS.forEach((color) => {
-    const colorButton = createColorButton(color, () => {
+  const currentColor = highlightElement.dataset.color || COLORS[0];
+
+  const colorPalette = createColorPalette(() => {
+    return (color) => {
       allElements.forEach((element) => {
         element.style.backgroundColor = color;
+        element.dataset.color = color;
       });
 
       chrome.runtime.sendMessage({
@@ -79,17 +82,68 @@ function addColorButtonsForHighlight(toolbar, highlightElement) {
         },
       });
 
+      updateMainColor(colorPalette, color);
       closeAllUI();
-    });
+    };
+  }, currentColor);
 
-    toolbar.appendChild(colorButton);
+  toolbar.appendChild(colorPalette);
+}
+
+function createColorPalette(getClickHandler, initialColor = null) {
+  const paletteContainer = document.createElement("div");
+  paletteContainer.className = "color-palette-container";
+
+  const mainColor = initialColor || COLORS[0];
+
+  const mainColorButton = createColorButton(mainColor, () => {
+    getClickHandler()(mainColor);
+    updateMainColor(paletteContainer, mainColor);
   });
+
+  mainColorButton.className = "color-palette-button main-color";
+
+  paletteContainer.appendChild(mainColorButton);
+
+  const hiddenColors = document.createElement("div");
+  hiddenColors.className = "hidden-colors";
+
+  const filteredColors = COLORS.filter((color) => color !== mainColor);
+
+  filteredColors.slice(0, 4).forEach((color, index) => {
+    const colorButton = createColorButton(color, () => {
+      getClickHandler()(color);
+      updateMainColor(paletteContainer, color);
+    });
+    colorButton.className = "color-palette-button hidden-color";
+    colorButton.style.transitionDelay = `${index * 0.05}s`;
+    hiddenColors.appendChild(colorButton);
+  });
+
+  paletteContainer.appendChild(hiddenColors);
+
+  paletteContainer.addEventListener("mouseenter", () => {
+    paletteContainer.classList.add("expanded");
+  });
+
+  paletteContainer.addEventListener("mouseleave", () => {
+    paletteContainer.classList.remove("expanded");
+  });
+
+  return paletteContainer;
+}
+
+function updateMainColor(paletteContainer, newColor) {
+  const mainColorButton = paletteContainer.querySelector(".main-color");
+
+  if (mainColorButton) {
+    mainColorButton.style.backgroundColor = newColor;
+  }
 }
 
 function createColorButton(color, clickHandler) {
   const colorButton = document.createElement("div");
 
-  colorButton.className = "color-palette-button";
   colorButton.style.backgroundColor = color;
   colorButton.addEventListener("click", clickHandler);
 
@@ -98,7 +152,7 @@ function createColorButton(color, clickHandler) {
 
 function addNoteButtonForSelection(toolbar) {
   const noteButton = createNoteButton("Add note", () => {
-    const highlightElement = applyHighlightForNote();
+    const highlightElement = applyHighlight(COLORS[0]);
 
     closeAllUI();
 
