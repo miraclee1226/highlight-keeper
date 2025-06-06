@@ -323,7 +323,7 @@ export function closeNoteEditor() {
 function positionToolbarAboveSelection(range, toolbar) {
   const rect = range.getBoundingClientRect();
 
-  toolbar.style.top = window.scrollY + rect.top - 50 + "px";
+  toolbar.style.top = window.scrollY + rect.top - 40 + "px";
   toolbar.style.left = window.scrollX + rect.left + "px";
 
   requestAnimationFrame(() => {
@@ -343,7 +343,7 @@ function positionToolbarAboveSelection(range, toolbar) {
 function positionToolbarAboveHighlight(highlightElement, toolbar) {
   const rect = highlightElement.getBoundingClientRect();
 
-  toolbar.style.top = window.scrollY + rect.top - 50 + "px";
+  toolbar.style.top = window.scrollY + rect.top - 40 + "px";
   toolbar.style.left = window.scrollX + rect.left + "px";
 
   requestAnimationFrame(() => {
