@@ -4,7 +4,9 @@ import {
   applyHighlight,
   cancelSelection,
 } from "./highlighter";
-import { openNoteEditor } from "./note-editor";
+import { closeNoteEditor, openNoteEditor } from "./note-editor";
+
+let scrollHandler = null;
 
 export function createInitialToolbar(selection = null) {
   closeAllUI();
@@ -38,6 +40,7 @@ function createSelectionToolbar(selection) {
 
   animateToolbarEntry(toolbar);
   setupSelectionToolbarCloseHandler();
+  setupScrollHandler();
 }
 
 function createHighlightToolbar(highlightElement) {
@@ -57,7 +60,9 @@ function createHighlightToolbar(highlightElement) {
 
   animateToolbarEntry(toolbar);
   setupHighlightToolbarCloseHandler(highlightElement);
+  setupScrollHandler();
 }
+
 function addColorPaletteForSelection(toolbar) {
   const colorPalette = createColorPalette(() => {
     return (color) => {
@@ -288,6 +293,18 @@ function animateToolbarEntry(toolbar) {
   });
 }
 
+function setupScrollHandler() {
+  if (scrollHandler) {
+    window.removeEventListener("scroll", scrollHandler);
+  }
+
+  scrollHandler = () => {
+    closeAllUI();
+  };
+
+  window.addEventListener("scroll", scrollHandler);
+}
+
 function setupSelectionToolbarCloseHandler() {
   const closeHandler = (e) => {
     const toolbar = document.querySelector(".toolbar");
@@ -331,20 +348,6 @@ export function closeToolbar() {
     setTimeout(() => {
       if (toolbar.parentNode) {
         toolbar.remove();
-      }
-    }, 200);
-  }
-}
-
-export function closeNoteEditor() {
-  const noteEditor = document.querySelector(".note-editor");
-
-  if (noteEditor) {
-    noteEditor.classList.add("note-editor--hiding");
-
-    setTimeout(() => {
-      if (noteEditor.parentNode) {
-        noteEditor.remove();
       }
     }, 200);
   }

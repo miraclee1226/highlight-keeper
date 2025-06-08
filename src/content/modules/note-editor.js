@@ -1,4 +1,4 @@
-import { closeNoteEditor } from "./toolbar.js";
+let noteEditorScrollHandler = null;
 
 export function openNoteEditor(
   highlightElement,
@@ -30,6 +30,7 @@ export function openNoteEditor(
   });
 
   setupNoteEditorCloseHandler(noteEditor, highlightElement);
+  setupNoteEditorScrollHandler();
 }
 
 function createNoteEditor(highlightElement = null) {
@@ -161,6 +162,32 @@ function addEventStoppers(element) {
   ["mouseup", "mousedown", "click"].forEach((eventType) => {
     element.addEventListener(eventType, (e) => e.stopPropagation());
   });
+}
+
+export function closeNoteEditor() {
+  const noteEditor = document.querySelector(".note-editor");
+
+  if (noteEditor) {
+    noteEditor.classList.add("note-editor--hiding");
+
+    setTimeout(() => {
+      if (noteEditor.parentNode) {
+        noteEditor.remove();
+      }
+    }, 200);
+  }
+}
+
+function setupNoteEditorScrollHandler() {
+  if (noteEditorScrollHandler) {
+    window.removeEventListener("scroll", noteEditorScrollHandler);
+  }
+
+  noteEditorScrollHandler = () => {
+    closeNoteEditor();
+  };
+
+  window.addEventListener("scroll", noteEditorScrollHandler);
 }
 
 function setupNoteEditorCloseHandler(noteEditor, highlightElement) {
