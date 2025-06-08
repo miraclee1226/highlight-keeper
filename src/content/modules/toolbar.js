@@ -1,4 +1,3 @@
-import { COLORS } from "../../constant/colors";
 import {
   removeHighlight,
   applyHighlight,
@@ -78,7 +77,7 @@ function addColorPaletteForHighlight(toolbar, highlightElement) {
   const highlightId = highlightElement.dataset.id;
   const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
 
-  const currentColor = highlightElement.dataset.color || COLORS[0];
+  const currentColor = highlightElement.dataset.color || "#FFFDAA";
 
   const colorPalette = createColorPalette(() => {
     return (color) => {
@@ -107,7 +106,7 @@ function createColorPalette(getClickHandler, initialColor = null) {
   const paletteContainer = document.createElement("div");
   paletteContainer.className = "color-palette-container";
 
-  const mainColor = initialColor || COLORS[0];
+  const mainColor = initialColor || "#FFFDAA";
 
   const mainColorButton = createColorButton(mainColor, () => {
     getClickHandler()(mainColor);
@@ -121,7 +120,13 @@ function createColorPalette(getClickHandler, initialColor = null) {
   const hiddenColors = document.createElement("div");
   hiddenColors.className = "hidden-colors";
 
-  const filteredColors = COLORS.filter((color) => color !== mainColor);
+  const filteredColors = [
+    "#FFFDAA",
+    "#B3E5FC",
+    "#C8E6C9",
+    "#FFCCBC",
+    "#E1BEE7",
+  ].filter((color) => color !== mainColor);
 
   filteredColors.slice(0, 4).forEach((color, index) => {
     const colorButton = createColorButton(color, () => {
@@ -165,7 +170,7 @@ function createColorButton(color, clickHandler) {
 
 function addNoteButtonForSelection(toolbar) {
   const noteButton = createNoteButton(() => {
-    const highlightElement = applyHighlight(COLORS[0]);
+    const highlightElement = applyHighlight("#FFFDAA");
 
     closeAllUI();
 

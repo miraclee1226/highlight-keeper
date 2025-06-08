@@ -249,11 +249,7 @@ export function restoreHighlightData(highlightData) {
   return true;
 }
 
-function applyUnifiedHighlight(
-  range,
-  highlightId,
-  color = "rgb(255, 245, 157)"
-) {
+function applyUnifiedHighlight(range, highlightId, color = "#FFFDAA") {
   const textNodes = [];
   const createdElements = [];
 
@@ -385,6 +381,7 @@ function createHighlightElement(highlightText, highlightId, color) {
   span.dataset.id = highlightId;
   span.dataset.timestamp = new Date().toISOString();
   span.dataset.url = window.location.href;
+  span.dataset.color = color;
   span.style.backgroundColor = color;
 
   span.addEventListener("mouseenter", () => {
