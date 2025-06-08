@@ -77,26 +77,6 @@ span {
   color: #45a049;
 }
 
-.intro__button {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  background-color: #4caf50;
-  color: white;
-  border-radius: 5px;
-  transition: background-color 0.2s;
-}
-
-.intro__button:hover {
-  background-color: #45a049;
-}
-
-.count {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-}
-
 .highlights {
   background-color: #f9f6f6;
   padding: 10px 15px;
@@ -109,9 +89,9 @@ span {
 .note {
   display: flex;
   flex-direction: column;
-  min-height: 100px;
+  min-height: 75px;
   gap: 10px;
-  padding: 10px 0;
+  padding: 15px 0;
   border-bottom: 1px solid #e0e0e0;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -121,7 +101,7 @@ span {
   background-color: #f0f0f0;
   border-radius: 6px;
   margin: 0 -5px;
-  padding: 10px 5px;
+  padding: 15px 5px;
 }
 
 .note:last-child {

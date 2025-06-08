@@ -1,23 +1,4 @@
-document.querySelector(".intro__button").addEventListener("click", () => {
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { action: "start_highlight" },
-      (response) => {
-        if (chrome.runtime.lastError) {
-          alert("Please reload the page and try again.");
-          return;
-        }
-
-        if (response) {
-          window.close();
-        }
-      }
-    );
-  });
-});
-
-loadCurrentPageHighlights();
+import { COLORS } from "../constant/colors";
 
 function loadCurrentPageHighlights() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
@@ -53,19 +34,16 @@ function loadCurrentPageHighlights() {
   });
 }
 
+loadCurrentPageHighlights();
+
 function displayHighlights(highlights) {
-  const countElement = document.querySelector(".count");
   const highlightsContainer = document.querySelector(".highlights");
-
-  if (!countElement || !highlightsContainer) return;
-
-  countElement.textContent = `Saved Highlights: ${highlights.length}`;
 
   if (highlights.length === 0) {
     highlightsContainer.innerHTML = `
       <div class="no-highlights">
         <p>No highlights saved for this page yet.</p>
-        <p>Click "Start Highlighting" to begin!</p>
+        <p>Drag text to start highlighting!</p>
       </div>
     `;
     return;
@@ -89,7 +67,7 @@ function createHighlightElement(highlight) {
   const date = new Date(highlight.createdAt);
   const formattedDate = formatDate(date);
 
-  const highlightColor = highlight.color || "rgb(255, 245, 157)";
+  const highlightColor = highlight.color || COLORS[0];
   const highlightText = highlight.selection?.text || "No text";
   const noteText = highlight.note || "";
 
