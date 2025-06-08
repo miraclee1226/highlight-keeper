@@ -29,8 +29,10 @@ function createSelectionToolbar(selection) {
   addColorPaletteForSelection(toolbar);
   addDivider(toolbar);
   addNoteButtonForSelection(toolbar);
-  addDivider(toolbar);
-  createAIButton(toolbar);
+
+  // TODO: AI Function
+  // addDivider(toolbar);
+  // createAIButton(toolbar);
 
   document.body.appendChild(toolbar);
 
@@ -45,8 +47,10 @@ function createHighlightToolbar(highlightElement) {
   addDivider(toolbar);
   addNoteButtonForHighlight(toolbar, highlightElement);
   addDivider(toolbar);
-  createAIButton(toolbar);
-  addDivider(toolbar);
+
+  // TODO: AI Function
+  // createAIButton(toolbar);
+  // addDivider(toolbar);
   createDeleteButton(toolbar, highlightElement);
 
   document.body.appendChild(toolbar);
@@ -206,30 +210,31 @@ function createNoteButton(clickHandler) {
   return noteButton;
 }
 
-function createAIButton(toolbar) {
-  const bulbButton = document.createElement("button");
-  const img = document.createElement("img");
-  const text = document.createElement("span");
+// TODO: AI Function
+// function createAIButton(toolbar) {
+//   const bulbButton = document.createElement("button");
+//   const img = document.createElement("img");
+//   const text = document.createElement("span");
 
-  img.src = chrome.runtime.getURL("/public/icons/bulb.svg");
-  img.alt = "AI Insight Icon";
+//   img.src = chrome.runtime.getURL("/public/icons/bulb.svg");
+//   img.alt = "AI Insight Icon";
 
-  text.textContent = "Ask AI";
+//   text.textContent = "Ask AI";
 
-  bulbButton.appendChild(img);
-  bulbButton.appendChild(text);
+//   bulbButton.appendChild(img);
+//   bulbButton.appendChild(text);
 
-  bulbButton.className = "bulb-button";
+//   bulbButton.className = "bulb-button";
 
-  bulbButton.addEventListener("click", (e) => {
-    e.stopPropagation();
+//   bulbButton.addEventListener("click", (e) => {
+//     e.stopPropagation();
 
-    closeAllUI();
-    cancelSelection();
-  });
+//     closeAllUI();
+//     cancelSelection();
+//   });
 
-  toolbar.appendChild(bulbButton);
-}
+//   toolbar.appendChild(bulbButton);
+// }
 
 function createDeleteButton(toolbar, highlightElement) {
   const deleteButton = document.createElement("button");
