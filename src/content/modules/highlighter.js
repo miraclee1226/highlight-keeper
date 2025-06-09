@@ -240,10 +240,6 @@ export function restoreHighlightData(highlightData) {
 
   if (!range) return false;
 
-  const restoredText = range.toString();
-
-  if (restoredText !== selection.text) return false;
-
   applyUnifiedHighlight(range, highlightData.uuid, highlightData.color);
 
   return true;
