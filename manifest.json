@@ -3,10 +3,18 @@
   "name": "Highlight Keeper",
   "version": "1.0",
   "description": "Highlight sentences on web pages and save notes",
+  "icons": {
+    "16": "dist/icons/logo.png",
+    "48": "dist/icons/logo.png",
+    "128": "dist/icons/logo.png"
+  },
   "permissions": ["activeTab"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "dist/src/index.html"
+    "default_popup": "dist/src/index.html",
+    "default_icon": {
+      "16": "dist/icons/logo.png"
+    }
   },
   "content_scripts": [
     {
@@ -21,6 +29,7 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "public/icons/logo.png",
         "public/icons/note.svg",
         "public/icons/bulb.svg",
         "public/icons/delete.svg"
