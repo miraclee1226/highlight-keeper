@@ -6,10 +6,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        index: resolve(__dirname, "src/index.html"),
         "content-script": resolve(__dirname, "src/content/content.js"),
         "content-style": resolve(__dirname, "src/content/content.css"),
         background: resolve(__dirname, "src/background/background.js"),
+        "sidePanel-index": resolve(__dirname, "src/sidePanel.html"),
       },
       output: {
         entryFileNames: "[name].js",

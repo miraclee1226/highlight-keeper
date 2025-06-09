@@ -1,3 +1,7 @@
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
 chrome.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
     console.log("Extension installed - DB will be initialized when first used");

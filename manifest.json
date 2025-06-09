@@ -8,10 +8,9 @@
     "48": "dist/icons/logo.png",
     "128": "dist/icons/logo.png"
   },
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "sidePanel"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "dist/src/index.html",
     "default_icon": {
       "16": "dist/icons/logo.png"
     }
@@ -23,6 +22,9 @@
       "css": ["dist/content-style.css"]
     }
   ],
+  "side_panel": {
+    "default_path": "dist/src/sidepanel.html"
+  },
   "background": {
     "service_worker": "dist/background.js"
   },
