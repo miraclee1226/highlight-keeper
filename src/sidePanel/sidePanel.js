@@ -49,7 +49,7 @@ function displayHighlights(highlights) {
     return;
   }
 
-  const sortedHighlights = highlights.sort((a, b) => b.createdAt - a.createdAt);
+  const sortedHighlights = highlights.sort((a, b) => a.createdAt - b.createdAt);
 
   highlightsContainer.innerHTML = "";
 
