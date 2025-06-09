@@ -4,15 +4,15 @@
   "version": "1.0",
   "description": "Highlight sentences on web pages and save notes",
   "icons": {
-    "16": "dist/icons/logo.png",
-    "48": "dist/icons/logo.png",
-    "128": "dist/icons/logo.png"
+    "16": "public/icons/logo.png",
+    "48": "public/icons/logo.png",
+    "128": "public/icons/logo.png"
   },
   "permissions": ["activeTab", "sidePanel"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_icon": {
-      "16": "dist/icons/logo.png"
+      "16": "public/icons/logo.png"
     }
   },
   "content_scripts": [
