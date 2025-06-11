@@ -9,7 +9,7 @@ export default defineConfig({
         "content-script": resolve(__dirname, "src/content/content.js"),
         "content-style": resolve(__dirname, "src/content/content.css"),
         background: resolve(__dirname, "src/background/background.js"),
-        "sidePanel-index": resolve(__dirname, "src/sidePanel.html"),
+        "side-panel": resolve(__dirname, "src/side-panel.html"),
       },
       output: {
         entryFileNames: "[name].js",
