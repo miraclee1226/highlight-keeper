@@ -1,1 +1,7 @@
-export const COLORS = ["#FFFDAA", "#B3E5FC", "#C8E6C9", "#FFCCBC", "#E1BEE7"];
+export const COLORS = [
+  "rgb(255, 253, 170)",
+  "rgb(179, 229, 252)",
+  "rgb(200, 230, 201)",
+  "rgb(255, 204, 188)",
+  "rgb(225, 190, 231)",
+];
