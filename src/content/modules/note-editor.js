@@ -1,17 +1,13 @@
 let noteEditorScrollHandler = null;
 
-export function openNoteEditor(
-  highlightElement,
-  toolbar = null,
-  editMode = true
-) {
+export function openNoteEditor(highlightElement, editMode = true) {
   const existingEditor = document.querySelector(".note-editor");
 
   if (existingEditor) {
     existingEditor.remove();
   }
 
-  const noteEditor = createNoteEditor(highlightElement, toolbar);
+  const noteEditor = createNoteEditor(highlightElement);
   const currentNote = highlightElement.dataset.note || "";
   const title = createTitle();
 

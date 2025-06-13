@@ -117,7 +117,7 @@
 
 /* Highlight */
 .highlighted-element {
-  background-color: #fff59d;
+  background-color: "rgb(255, 253, 170)";
   border-radius: 1px;
   cursor: pointer;
   transition: all 0.2s ease;

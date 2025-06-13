@@ -1,5 +1,4 @@
 import { createInitialToolbar, handleHighlightClick } from "./toolbar";
-
 let currentSelection = null;
 
 export function handleHighlighting() {
