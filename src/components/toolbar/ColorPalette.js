@@ -1,4 +1,4 @@
-import { Component } from "./../../base-component";
+import { Component } from "../base-component";
 // TODO: import COLORS
 // import { COLORS } from "./../../../constant/colors";
 

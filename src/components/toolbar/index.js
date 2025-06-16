@@ -1,6 +1,6 @@
 import { Component } from "../base-component";
-import { Button } from "./components/Button";
-import { ColorPalette } from "./components/ColorPalette";
+import { Button } from "./Button";
+import { ColorPalette } from "./ColorPalette";
 // TODO: import COLORS
 // import { COLORS } from "./../../constant/colors";
 
