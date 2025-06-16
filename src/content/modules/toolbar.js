@@ -1,20 +1,16 @@
 import { applyHighlight, removeHighlight } from "./highlighter";
-import { Toolbar } from "./../../components/toolbar/Toolbar";
+import { Toolbar } from "../../components/toolbar";
 import { openNoteEditor } from "./note-editor";
+// TODO: import COLORS
+// import { COLORS } from './../../constant/colors';
 
 let currentToolbar = null;
 
 function cleanupCurrentToolbar() {
-  const toolbarElement = document.querySelector(".toolbar");
-  if (toolbarElement) {
-    toolbarElement.classList.add("toolbar--hiding");
-    setTimeout(() => {
-      if (toolbarElement) {
-        toolbarElement.remove();
-      }
-    }, 200);
+  if (currentToolbar) {
+    currentToolbar.cleanup();
+    currentToolbar = null;
   }
-  currentToolbar = null;
 }
 
 export function createInitialToolbar(selection = null) {
@@ -27,7 +23,7 @@ export function createInitialToolbar(selection = null) {
     onNoteClick: () => {
       const highlightElement = applyHighlight("rgb(255, 253, 170)");
       if (highlightElement) {
-        openNoteEditor(highlightElement, true);
+        openNoteEditor(highlightElement);
       }
     },
   });
@@ -73,7 +69,7 @@ export function handleHighlightClick(e) {
       });
     },
     onNoteClick: () => {
-      openNoteEditor(highlightElement, true);
+      openNoteEditor(highlightElement);
     },
     onDeleteClick: () => {
       removeHighlight(highlightElement);
@@ -88,8 +84,4 @@ export function handleHighlightClick(e) {
   };
 
   currentToolbar.show("highlight", position);
-}
-
-export function closeToolbar() {
-  cleanupCurrentToolbar();
 }

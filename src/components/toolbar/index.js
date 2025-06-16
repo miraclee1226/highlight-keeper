@@ -6,6 +6,10 @@ import { ColorPalette } from "./ColorPalette";
 
 export class Toolbar extends Component {
   setup() {
+    this.outsideClickHandler = null;
+    this.scrollHandler = null;
+    this.toolbarElement = null;
+
     this.state = {
       isVisible: false,
       position: { top: 0, left: 0 },
@@ -18,7 +22,7 @@ export class Toolbar extends Component {
     if (!this.state.isVisible) return "";
 
     return `
-      <div class="toolbar" 
+      <div class="toolbar"
            style="top: ${this.state.position.top}px; left: ${
       this.state.position.left
     }px;">
@@ -35,34 +39,47 @@ export class Toolbar extends Component {
   }
 
   render() {
-    const toolbarElement = document.querySelector(".toolbar");
-    if (toolbarElement) {
-      toolbarElement.remove();
+    const existingToolbar =
+      this.toolbarElement || document.querySelector(".toolbar");
+
+    if (
+      existingToolbar &&
+      !existingToolbar.classList.contains("toolbar--hiding")
+    ) {
+      existingToolbar.remove();
+      this.toolbarElement = null;
     }
 
     if (this.state.isVisible) {
       this.$target.insertAdjacentHTML("beforeend", this.template());
+      this.toolbarElement = this.$target.querySelector(".toolbar");
 
       requestAnimationFrame(() => {
-        const newToolbar = document.querySelector(".toolbar");
-        if (newToolbar) {
-          newToolbar.classList.add("toolbar--entering");
+        if (this.toolbarElement) {
+          this.toolbarElement.classList.add("toolbar--entering");
+          this.adjustPosition();
         }
       });
+
       this.mounted();
     }
   }
 
   mounted() {
-    if (!this.state.isVisible) return;
+    if (!this.state.isVisible || !this.toolbarElement) return;
 
-    const colorPalette = this.$target.querySelector(
+    this.setupComponents();
+    this.setupEventHandlers();
+  }
+
+  setupComponents() {
+    const colorPalette = this.toolbarElement.querySelector(
       '[data-component="color-palette"]'
     );
-    const noteButton = this.$target.querySelector(
+    const noteButton = this.toolbarElement.querySelector(
       '[data-component="note-button"]'
     );
-    const deleteButton = this.$target.querySelector(
+    const deleteButton = this.toolbarElement.querySelector(
       '[data-component="delete-button"]'
     );
 
@@ -103,27 +120,52 @@ export class Toolbar extends Component {
     }
   }
 
-  setEvent() {
-    this.outsideClickHandler = this.handleOutsideClick.bind(this);
-    document.addEventListener("mousedown", this.outsideClickHandler);
+  setupEventHandlers() {
+    this.outsideClickHandler = (e) => {
+      if (!this.state.isVisible) return;
+      if (this.toolbarElement?.contains(e.target)) return;
+
+      this.hide();
+    };
+
+    this.scrollHandler = () => {
+      if (this.state.isVisible) {
+        this.hide();
+      }
+    };
+
+    document.addEventListener("click", this.outsideClickHandler);
+    window.addEventListener("scroll", this.scrollHandler);
   }
 
   show(type = "selection", position = { top: 0, left: 0 }) {
+    this.cleanup();
+
     this.setState({
       isVisible: true,
       type,
-      position: this.adjustPosition(position),
+      position: this.calculatePosition(position),
     });
   }
 
   hide() {
-    const toolbar = this.$target.querySelector(".toolbar");
-    if (toolbar) {
-      toolbar.classList.add("toolbar--hiding");
+    if (!this.state.isVisible) return;
+
+    this.state.isVisible = false;
+
+    if (this.toolbarElement) {
+      this.toolbarElement.classList.add("toolbar--hiding");
+
+      setTimeout(() => {
+        if (this.toolbarElement?.parentNode) {
+          this.toolbarElement.remove();
+          this.toolbarElement = null;
+        }
+      }, 200);
     }
   }
 
-  adjustPosition(position) {
+  calculatePosition(position) {
     const toolbarWidth = 200;
     const toolbarHeight = 40;
     let { top, left } = position;
@@ -139,12 +181,39 @@ export class Toolbar extends Component {
     return { top, left };
   }
 
-  handleOutsideClick(e) {
-    if (!this.state.isVisible) return;
+  adjustPosition() {
+    if (!this.state.isVisible || !this.toolbarElement) return;
 
-    const toolbar = this.$target.querySelector(".toolbar");
-    if (toolbar && !toolbar.contains(e.target)) {
-      this.hide();
+    const toolbarRect = this.toolbarElement.getBoundingClientRect();
+    let newLeft = this.state.position.left;
+    let newTop = this.state.position.top;
+
+    if (toolbarRect.right > window.innerWidth) {
+      newLeft = window.scrollX + window.innerWidth - toolbarRect.width - 10;
+    }
+
+    if (toolbarRect.bottom > window.innerHeight) {
+      newTop = window.scrollY + window.innerHeight - toolbarRect.height - 10;
+    }
+
+    if (
+      newLeft !== this.state.position.left ||
+      newTop !== this.state.position.top
+    ) {
+      this.toolbarElement.style.left = newLeft + "px";
+      this.toolbarElement.style.top = newTop + "px";
+    }
+  }
+
+  cleanup() {
+    if (this.outsideClickHandler) {
+      document.removeEventListener("click", this.outsideClickHandler);
+      this.outsideClickHandler = null;
+    }
+
+    if (this.scrollHandler) {
+      window.removeEventListener("scroll", this.scrollHandler);
+      this.scrollHandler = null;
     }
   }
 }
