@@ -134,7 +134,7 @@ export class Toolbar extends Component {
       }
     };
 
-    document.addEventListener("click", this.outsideClickHandler);
+    document.addEventListener("mousedown", this.outsideClickHandler);
     window.addEventListener("scroll", this.scrollHandler);
   }
 
@@ -207,7 +207,7 @@ export class Toolbar extends Component {
 
   cleanup() {
     if (this.outsideClickHandler) {
-      document.removeEventListener("click", this.outsideClickHandler);
+      document.removeEventListener("mousedown", this.outsideClickHandler);
       this.outsideClickHandler = null;
     }
 
