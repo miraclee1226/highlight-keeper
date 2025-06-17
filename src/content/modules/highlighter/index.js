@@ -1,0 +1,101 @@
+import {
+  captureSelection,
+  getCurrentSelection,
+  clearCurrentSelection,
+  hasCurrentSelection,
+} from "./selection-manager";
+
+import {
+  generateHighlightId,
+  applyUnifiedHighlight,
+  removeAllHighlightElements,
+} from "./highlight-renderer";
+
+import {
+  saveHighlightToDatabase,
+  updateHighlightInDatabase,
+  deleteHighlightFromDatabase,
+} from "./highlight-storage";
+
+import { getOriginalDOMInfo, getRangeFromRelativeOffset } from "./dom-utils";
+
+import { createInitialToolbar } from "../toolbar";
+
+export function handleHighlighting() {
+  const selection = captureSelection();
+
+  if (!selection) return;
+
+  createInitialToolbar(selection);
+}
+
+export function applyHighlight(color) {
+  if (!hasCurrentSelection()) return null;
+
+  const selection = getCurrentSelection();
+  const windowSelection = window.getSelection();
+
+  if (windowSelection.rangeCount > 0) {
+    windowSelection.removeAllRanges();
+  }
+
+  const originalDOMInfo = getOriginalDOMInfo(selection.range, selection.text);
+
+  if (!originalDOMInfo) return null;
+
+  const highlightId = generateHighlightId();
+  const highlightElements = applyUnifiedHighlight(
+    selection.range,
+    highlightId,
+    color
+  );
+
+  saveHighlightToDatabase(originalDOMInfo, highlightId, color);
+
+  clearCurrentSelection();
+
+  return highlightElements ? highlightElements[0] : null;
+}
+
+export function removeHighlight(highlightElement) {
+  const highlightId = highlightElement.dataset.id;
+
+  if (!highlightId) return;
+
+  deleteHighlightFromDatabase(highlightId);
+  removeAllHighlightElements(highlightId);
+}
+
+export function updateHighlightColor(highlightId, newColor) {
+  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
+
+  allElements.forEach((element) => {
+    element.style.backgroundColor = newColor;
+    element.dataset.color = newColor;
+  });
+
+  updateHighlightInDatabase(highlightId, { color: newColor });
+}
+
+export function restoreHighlightData(highlightData) {
+  const selection = highlightData.selection;
+  const startElement = document.querySelector(selection.startContainerPath);
+  const endElement = document.querySelector(selection.endContainerPath);
+  const startOffset = selection.startOffset;
+  const endOffset = selection.endOffset;
+
+  if (!startElement || !endElement) return false;
+
+  const range = getRangeFromRelativeOffset(
+    startElement,
+    endElement,
+    startOffset,
+    endOffset
+  );
+
+  if (!range) return false;
+
+  applyUnifiedHighlight(range, highlightData.uuid, highlightData.color);
+
+  return true;
+}
