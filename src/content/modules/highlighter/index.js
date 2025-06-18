@@ -12,10 +12,10 @@ import {
 } from "./highlight-renderer";
 
 import {
-  saveHighlightToDatabase,
-  updateHighlightInDatabase,
-  deleteHighlightFromDatabase,
-} from "./highlight-storage";
+  saveHighlight,
+  updateHighlight,
+  deleteHighlight,
+} from "../../../api/highlight";
 
 import { getOriginalDOMInfo, getRangeFromRelativeOffset } from "./dom-utils";
 
@@ -50,7 +50,7 @@ export function applyHighlight(color) {
     color
   );
 
-  saveHighlightToDatabase(originalDOMInfo, highlightId, color);
+  saveHighlight(originalDOMInfo, highlightId, color);
 
   clearCurrentSelection();
 
@@ -62,7 +62,7 @@ export function removeHighlight(highlightElement) {
 
   if (!highlightId) return;
 
-  deleteHighlightFromDatabase(highlightId);
+  deleteHighlight(highlightId);
   removeAllHighlightElements(highlightId);
 }
 
@@ -74,7 +74,7 @@ export function updateHighlightColor(highlightId, newColor) {
     element.dataset.color = newColor;
   });
 
-  updateHighlightInDatabase(highlightId, { color: newColor });
+  updateHighlight(highlightId, { color: newColor });
 }
 
 export function restoreHighlightData(highlightData) {
