@@ -1,40 +1,16 @@
-import { COLORS } from "../constant/colors";
+import { getHighlights, scrollToHighlight } from "../api/highlight";
+import { escapeHtml, formatDate } from "../utils/formatter";
 
-function loadCurrentPageHighlights() {
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-    if (tabs[0]) {
-      chrome.runtime.sendMessage(
-        {
-          action: "get_highlights",
-          payload: tabs[0].url,
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            displayError("Runtime error: " + chrome.runtime.lastError.message);
-            return;
-          }
-
-          if (!response) {
-            displayError("No response from background script");
-            return;
-          }
-
-          if (response.action === "get_success") {
-            displayHighlights(response.data);
-          } else if (response.action === "get_error") {
-            displayError("Failed to get highlights: " + response.error);
-          } else {
-            displayError("Unexpected response format");
-          }
-        }
-      );
-    } else {
-      displayError("No active tab found");
-    }
-  });
+async function initializeApp() {
+  try {
+    const highlights = await getHighlights();
+    displayHighlights(highlights);
+  } catch {
+    displayError(error.message);
+  }
 }
 
-loadCurrentPageHighlights();
+initializeApp();
 
 function displayHighlights(highlights) {
   const highlightsContainer = document.querySelector(".highlights");
@@ -55,7 +31,6 @@ function displayHighlights(highlights) {
 
   sortedHighlights.forEach((highlight) => {
     const noteElement = createHighlightElement(highlight);
-
     highlightsContainer.appendChild(noteElement);
   });
 }
@@ -67,16 +42,16 @@ function createHighlightElement(highlight) {
   const date = new Date(highlight.createdAt);
   const formattedDate = formatDate(date);
 
-  const highlightColor = highlight.color || COLORS[0];
-  const highlightText = highlight.selection?.text || "No text";
-  const noteText = highlight.note || "";
+  const highlightColor = highlight.color;
+  const highlightText = highlight.selection?.text ?? "No text";
+  const noteText = highlight.note ?? "";
 
   noteDiv.innerHTML = `
       <div class="note__header">
-        <span class="note__date">${formattedDate} saved</span>
+        <span class="note__date">${formattedDate}</span>
         <div class="note__highlight">
           <div class="note__dot" style="background-color: ${highlightColor};"></div>
-          <p class="note__text--highlight" title="${escapeHtml(highlightText)}">
+          <p class="note__text--highlight">
             ${escapeHtml(highlightText)}
           </p>
         </div>
@@ -86,7 +61,7 @@ function createHighlightElement(highlight) {
           ? `
       <div class="note__memo">
         <div class="note__marker"></div>
-        <p class="note__text" title="${escapeHtml(noteText)}">
+        <p class="note__text">
           ${escapeHtml(noteText)}
         </p>
       </div>
@@ -102,50 +77,13 @@ function createHighlightElement(highlight) {
   return noteDiv;
 }
 
-function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}.${month}.${day}`;
-}
-
-function escapeHtml(text) {
-  if (!text) return "";
-
-  const div = document.createElement("div");
-
-  div.textContent = text;
-
-  const escapedText = div.innerHTML;
-
-  return escapedText.replace(/\n/g, "<br>");
-}
-
-function scrollToHighlight(uuid) {
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, {
-      action: "scroll_to_highlight",
-      payload: uuid,
-    });
-  });
-
-  window.close();
-}
-
 function displayError(errorMessage) {
   const highlightsContainer = document.querySelector(".highlights");
-  const countElement = document.querySelector(".count");
-
-  if (countElement) {
-    countElement.textContent = "Saved Highlights: 0";
-  }
 
   if (highlightsContainer) {
     highlightsContainer.innerHTML = `
       <div class="error-message">
-        <p>Failed to load highlights.</p>
-        <p style="font-size: 12px; color: #666;">${errorMessage}</p>
+        <p>${errorMessage}</p>
         <p>Please try refreshing the page.</p>
       </div>
     `;
