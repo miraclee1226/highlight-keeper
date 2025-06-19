@@ -4,6 +4,7 @@ import { scrollToHighlight } from "../../api/highlight.js";
 export function createHighlightElement(highlight) {
   const noteDiv = document.createElement("div");
   noteDiv.className = "note";
+  noteDiv.dataset.id = highlight.uuid;
 
   const date = new Date(highlight.createdAt);
   const formattedDate = formatDate(date);
