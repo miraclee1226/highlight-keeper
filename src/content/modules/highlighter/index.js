@@ -17,6 +17,10 @@ function safeExecute(callback) {
     document.addEventListener("DOMContentLoaded", callback);
   } else {
     callback();
+
+    [2000, 5000, 10000].forEach((delay) => {
+      setTimeout(callback, delay);
+    });
   }
 }
 
