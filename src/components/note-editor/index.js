@@ -1,3 +1,4 @@
+import { updateHighlight } from "../../api/highlight.js";
 import { Component } from "../base-component.js";
 
 export class NoteEditor extends Component {
@@ -91,8 +92,8 @@ export class NoteEditor extends Component {
       if (isHandled) return;
       isHandled = true;
 
-      const noteText = textarea.value.trim();
-      this.saveNote(noteText);
+      const note = textarea.value.trim();
+      this.saveNote(note);
       this.hide();
     };
 
@@ -119,7 +120,7 @@ export class NoteEditor extends Component {
     window.addEventListener("scroll", this.scrollHandler);
   }
 
-  saveNote(noteText) {
+  saveNote(note) {
     if (!this.props.highlightElement) return;
 
     const highlightId = this.props.highlightElement.dataset.id;
@@ -127,23 +128,14 @@ export class NoteEditor extends Component {
 
     const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
     allElements.forEach((element) => {
-      if (noteText.length > 0) {
-        element.dataset.note = noteText;
+      if (note.length > 0) {
+        element.dataset.note = note;
       } else {
         delete element.dataset.note;
       }
     });
 
-    chrome.runtime.sendMessage({
-      action: "update_highlight",
-      payload: {
-        uuid: highlightId,
-        data: {
-          note: noteText,
-          updatedAt: Date.now(),
-        },
-      },
-    });
+    updateHighlight(highlightId, { note });
   }
 
   show(highlightElement) {

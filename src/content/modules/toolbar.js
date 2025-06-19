@@ -1,10 +1,11 @@
 import { Toolbar } from "../../components/toolbar/index.js";
 import { openNoteEditor } from "./note-editor.js";
-import { COLORS } from "./../../constant/colors.js";
 import {
   applyHighlight,
   removeHighlight,
 } from "./highlighter/highlight-controller.js";
+import { updateHighlight } from "../../api/highlight.js";
+import { COLORS } from "./../../constant/colors.js";
 
 export function createInitialToolbar(selection = null) {
   const toolbar = new Toolbar(document.body, {
@@ -49,13 +50,7 @@ export function handleHighlightClick(e) {
         element.dataset.color = color;
       });
 
-      chrome.runtime.sendMessage({
-        action: "update_highlight",
-        payload: {
-          uuid: highlightId,
-          data: { color: color, updatedAt: Date.now() },
-        },
-      });
+      updateHighlight(highlightId, { color });
     },
     onNoteClick: () => {
       openNoteEditor(highlightElement);
