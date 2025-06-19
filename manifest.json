@@ -18,19 +18,20 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["dist/content-script.js"],
-      "css": ["dist/content-style.css"]
+      "js": ["src/content/content.js"],
+      "css": ["src/content/content.css"]
     }
   ],
   "side_panel": {
-    "default_path": "dist/src/side-panel.html"
+    "default_path": "src/side-panel.html"
   },
   "background": {
-    "service_worker": "dist/background.js"
+    "service_worker": "src/background/background.js"
   },
   "web_accessible_resources": [
     {
       "resources": [
+        "src/**/*.js",
         "public/icons/logo.png",
         "public/icons/note.svg",
         "public/icons/bulb.svg",

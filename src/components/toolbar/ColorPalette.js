@@ -1,16 +1,9 @@
-import { Component } from "../base-component";
-// TODO: import COLORS
-// import { COLORS } from "./../../../constant/colors";
+import { COLORS } from "../../constant/colors.js";
+import { Component } from "../base-component.js";
 
 export class ColorPalette extends Component {
   setup() {
-    this.colors = [
-      "rgb(255, 253, 170)",
-      "rgb(179, 229, 252)",
-      "rgb(200, 230, 201)",
-      "rgb(255, 204, 188)",
-      "rgb(225, 190, 231)",
-    ];
+    this.colors = COLORS;
 
     this.state = {
       currentColor: this.props.currentColor || this.colors[0],

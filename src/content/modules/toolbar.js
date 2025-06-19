@@ -1,8 +1,10 @@
-import { applyHighlight, removeHighlight } from "./highlighter";
-import { Toolbar } from "../../components/toolbar";
-import { openNoteEditor } from "./note-editor";
-// TODO: import COLORS
-// import { COLORS } from './../../constant/colors';
+import { Toolbar } from "../../components/toolbar/index.js";
+import { openNoteEditor } from "./note-editor.js";
+import { COLORS } from "./../../constant/colors.js";
+import {
+  applyHighlight,
+  removeHighlight,
+} from "./highlighter/highlight-controller.js";
 
 let currentToolbar = null;
 
@@ -21,7 +23,7 @@ export function createInitialToolbar(selection = null) {
       applyHighlight(color);
     },
     onNoteClick: () => {
-      const highlightElement = applyHighlight("rgb(255, 253, 170)");
+      const highlightElement = applyHighlight(COLORS[0]);
       if (highlightElement) {
         openNoteEditor(highlightElement);
       }

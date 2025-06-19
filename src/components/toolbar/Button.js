@@ -1,4 +1,4 @@
-import { Component } from "../base-component";
+import { Component } from "../base-component.js";
 
 export class Button extends Component {
   template() {

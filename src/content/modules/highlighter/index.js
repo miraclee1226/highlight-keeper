@@ -1,101 +1,114 @@
+import { getHighlights } from "../../../api/highlight.js";
 import {
-  captureSelection,
-  getCurrentSelection,
-  clearCurrentSelection,
-  hasCurrentSelection,
-} from "./selection-manager";
+  handleHighlighting,
+  restoreHighlightData,
+} from "./highlight-controller.js";
 
-import {
-  generateHighlightId,
-  applyUnifiedHighlight,
-  removeAllHighlightElements,
-} from "./highlight-renderer";
-
-import {
-  saveHighlight,
-  updateHighlight,
-  deleteHighlight,
-} from "../../../api/highlight";
-
-import { getOriginalDOMInfo, getRangeFromRelativeOffset } from "./dom-utils";
-
-import { createInitialToolbar } from "../toolbar";
-
-export function handleHighlighting() {
-  const selection = captureSelection();
-
-  if (!selection) return;
-
-  createInitialToolbar(selection);
+function restoreHighlights() {
+  getHighlights({
+    payload: location.href,
+    onSuccess: (highlights) => renderAllHighlights(highlights),
+    onError: (error) => console.error(error),
+  });
 }
 
-export function applyHighlight(color) {
-  if (!hasCurrentSelection()) return null;
+function safeExecute(callback) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", callback);
+  } else {
+    callback();
+  }
+}
 
-  const selection = getCurrentSelection();
-  const windowSelection = window.getSelection();
+function initializeHighlighting() {
+  restoreHighlights();
 
-  if (windowSelection.rangeCount > 0) {
-    windowSelection.removeAllRanges();
+  document.addEventListener("mouseup", (e) => {
+    if (e.target.closest(".toolbar") || e.target.closest(".note-editor"))
+      return;
+    handleHighlighting();
+  });
+}
+
+safeExecute(initializeHighlighting);
+
+// Detect URL changes (SPA support)
+let lastUrl = location.href;
+const urlChangeObserver = new MutationObserver(() => {
+  const url = location.href;
+
+  if (url !== lastUrl) {
+    lastUrl = url;
+    setTimeout(() => restoreHighlights(), 1500);
+  }
+});
+
+urlChangeObserver.observe(document, {
+  subtree: true,
+  childList: true,
+});
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.action === "get_success") {
+    renderAllHighlights(request.data);
+    sendResponse({ status: "rendered" });
   }
 
-  const originalDOMInfo = getOriginalDOMInfo(selection.range, selection.text);
+  if (request.action === "get_error") {
+    console.error("Failed to get highlights:", request.error);
+    sendResponse({ status: "error" });
+  }
 
-  if (!originalDOMInfo) return null;
+  if (request.action === "scroll_to_highlight") {
+    scrollToHighlightElement(request.payload);
+    sendResponse({ status: "scrolled" });
+  }
+});
 
-  const highlightId = generateHighlightId();
-  const highlightElements = applyUnifiedHighlight(
-    selection.range,
-    highlightId,
-    color
-  );
+function renderAllHighlights(highlights) {
+  if (!highlights || highlights.length === 0) return;
 
-  saveHighlight(originalDOMInfo, highlightId, color);
-
-  clearCurrentSelection();
-
-  return highlightElements ? highlightElements[0] : null;
-}
-
-export function removeHighlight(highlightElement) {
-  const highlightId = highlightElement.dataset.id;
-
-  if (!highlightId) return;
-
-  deleteHighlight(highlightId);
-  removeAllHighlightElements(highlightId);
-}
-
-export function updateHighlightColor(highlightId, newColor) {
-  const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
-
-  allElements.forEach((element) => {
-    element.style.backgroundColor = newColor;
-    element.dataset.color = newColor;
+  highlights.forEach((highlight, index) => {
+    setTimeout(() => {
+      renderSingleHighlight(highlight);
+    }, index * 100);
   });
-
-  updateHighlight(highlightId, { color: newColor });
 }
 
-export function restoreHighlightData(highlightData) {
-  const selection = highlightData.selection;
-  const startElement = document.querySelector(selection.startContainerPath);
-  const endElement = document.querySelector(selection.endContainerPath);
-  const startOffset = selection.startOffset;
-  const endOffset = selection.endOffset;
+function renderSingleHighlight(highlight) {
+  const restoredhighlight = restoreHighlightData(highlight);
+  const note = highlight.note;
 
-  if (!startElement || !endElement) return false;
+  if (restoredhighlight) {
+    const allHighlightElements = document.querySelectorAll(
+      `[data-id="${highlight.uuid}"]`
+    );
 
-  const range = getRangeFromRelativeOffset(
-    startElement,
-    endElement,
-    startOffset,
-    endOffset
-  );
+    if (note) {
+      allHighlightElements.forEach((element) => {
+        element.dataset.note = note;
+      });
+    }
+  }
+}
 
-  if (!range) return false;
+function scrollToHighlightElement(uuid) {
+  const highlightElement = document.querySelectorAll(`[data-id="${uuid}"]`);
 
-  applyUnifiedHighlight(range, highlightData.uuid, highlightData.color);
+  if (highlightElement.length > 0) {
+    const firstElement = highlightElement[0];
 
-  return true;
+    firstElement.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+
+    highlightElement.forEach((element) => {
+      element.classList.add("highlight-flash");
+
+      setTimeout(() => {
+        element.classList.remove("highlight-flash");
+      }, 2000);
+    });
+  }
 }

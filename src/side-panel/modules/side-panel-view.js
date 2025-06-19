@@ -1,17 +1,17 @@
-import { createHighlightElement } from "./side-panel-renderer";
+import { createHighlightElement } from "./side-panel-renderer.js";
 
 const container = document.querySelector(".highlights");
 
 export function displayHighlights(highlights) {
   if (highlights.length === 0) {
-    showEmptyState();
+    displayEmptyState();
     return;
   }
 
   renderHighlights(highlights);
 }
 
-function showEmptyState() {
+function displayEmptyState() {
   container.innerHTML = `
     <div class="no-highlights">
     <p>No highlights saved for this page yet.</p>

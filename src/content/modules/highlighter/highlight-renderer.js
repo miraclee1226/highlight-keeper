@@ -1,4 +1,4 @@
-import { handleHighlightClick } from "../toolbar";
+import { handleHighlightClick } from "../toolbar.js";
 
 export function generateHighlightId() {
   const randomId = crypto.randomUUID();

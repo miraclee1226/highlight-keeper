@@ -1,8 +1,6 @@
-import { Component } from "../base-component";
-import { Button } from "./Button";
-import { ColorPalette } from "./ColorPalette";
-// TODO: import COLORS
-// import { COLORS } from "./../../constant/colors";
+import { Component } from "../base-component.js";
+import { Button } from "./Button.js";
+import { ColorPalette } from "./ColorPalette.js";
 
 export class Toolbar extends Component {
   setup() {

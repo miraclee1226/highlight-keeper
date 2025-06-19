@@ -1,4 +1,4 @@
-import { NoteEditor } from "../../components/note-editor";
+import { NoteEditor } from "../../components/note-editor/index.js";
 
 let currentNoteEditor = null;
 
