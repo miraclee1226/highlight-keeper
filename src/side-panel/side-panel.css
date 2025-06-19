@@ -64,7 +64,7 @@ span {
   line-height: 1.5;
 }
 
-.highlights {
+.container {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -184,19 +184,19 @@ span {
   color: #e74c3c;
 }
 
-.highlights::-webkit-scrollbar {
+.container::-webkit-scrollbar {
   width: 6px;
 }
 
-.highlights::-webkit-scrollbar-track {
+.container::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.highlights::-webkit-scrollbar-thumb {
+.container::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
 }
 
-.highlights::-webkit-scrollbar-thumb:hover {
+.container::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
