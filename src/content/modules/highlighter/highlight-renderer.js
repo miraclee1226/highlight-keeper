@@ -1,3 +1,4 @@
+import { COLORS } from "../../../constant/colors.js";
 import { handleHighlightClick } from "../toolbar.js";
 
 export function generateHighlightId() {
@@ -13,7 +14,6 @@ export function createHighlightElement(highlightText, highlightId, color) {
   span.dataset.id = highlightId;
   span.dataset.timestamp = new Date().toISOString();
   span.dataset.url = window.location.href;
-  span.dataset.color = color;
   span.style.backgroundColor = color;
 
   span.addEventListener("mousedown", handleHighlightClick);
@@ -45,7 +45,7 @@ export function createHighlightElement(highlightText, highlightId, color) {
   return span;
 }
 
-export function applyUnifiedHighlight(range, highlightId, color = "#FFFDAA") {
+export function applyUnifiedHighlight(range, highlightId, color = COLORS[0]) {
   const textNodes = [];
   const createdElements = [];
 

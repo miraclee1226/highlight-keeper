@@ -67,7 +67,6 @@ export function updateHighlightColor(highlightId, newColor) {
 
   allElements.forEach((element) => {
     element.style.backgroundColor = newColor;
-    element.dataset.color = newColor;
   });
 
   updateHighlight(highlightId, { color: newColor });
