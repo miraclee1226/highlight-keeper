@@ -7,17 +7,49 @@ import {
   addHighlightToList,
 } from "./modules/side-panel-view.js";
 
-(function refreshHighlights() {
+function loadHighlightsForUrl(url) {
+  getHighlights({
+    payload: url,
+    onSuccess: (highlights) => displayHighlights(highlights),
+    onError: (error) => displayError(error.message),
+  });
+}
+
+function refreshCurrentTab() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
     if (tabs[0]) {
-      getHighlights({
-        payload: tabs[0].url,
-        onSuccess: (highlights) => displayHighlights(highlights),
-        onError: (error) => displayError(error.message),
-      });
+      loadHighlightsForUrl(tabs[0].url);
     }
   });
-})();
+}
+
+refreshCurrentTab();
+
+function loadHighlightsForTabId(tabId) {
+  chrome.tabs.get(tabId, (tab) => {
+    if (tab && tab.url) {
+      loadHighlightsForUrl(tab.url);
+    }
+  });
+}
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  loadHighlightsForTabId(activeInfo.tabId);
+});
+
+// Detect URL changes (SPA support)
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    chrome.tabs.query(
+      { active: true, lastFocusedWindow: true },
+      (activeTabs) => {
+        if (activeTabs[0] && activeTabs[0].id === tabId) {
+          refreshCurrentTab();
+        }
+      }
+    );
+  }
+});
 
 function handleHighlightCreated(highlightData) {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
