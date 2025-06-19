@@ -1,40 +1,29 @@
-export function getHighlights() {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-      if (!tabs[0]) {
-        reject(new Error("No active tab found"));
+export function getHighlights({ payload, onSuccess, onError }) {
+  chrome.runtime.sendMessage(
+    {
+      action: "get_highlights",
+      payload,
+    },
+    (response) => {
+      if (chrome.runtime.lastError) {
+        onError?.(new Error(chrome.runtime.lastError.message));
         return;
       }
 
-      chrome.runtime.sendMessage(
-        {
-          action: "get_highlights",
-          payload: tabs[0].url,
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            reject(
-              new Error("Runtime error: " + chrome.runtime.lastError.message)
-            );
-            return;
-          }
+      if (!response) {
+        onError?.(new Error("No response from background script"));
+        return;
+      }
 
-          if (!response) {
-            reject(new Error("No response from background script"));
-            return;
-          }
-
-          if (response.action === "get_success") {
-            resolve(response.data);
-          } else if (response.action === "get_error") {
-            reject(new Error(response.error));
-          } else {
-            reject(new Error("Unexpected response format"));
-          }
-        }
-      );
-    });
-  });
+      if (response.action === "get_success") {
+        onSuccess?.(response.data);
+      } else if (response.action === "get_error") {
+        onError?.(new Error(response.error));
+      } else {
+        onError?.(new Error("Unexpected response format"));
+      }
+    }
+  );
 }
 
 export function saveHighlight(originalDOMInfo, highlightId, color) {

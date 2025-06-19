@@ -1,13 +1,16 @@
-import { getHighlights } from "../api/highlight";
-import { displayHighlights, displayError } from "./modules/side-panel-view";
+import { getHighlights } from "../api/highlight.js";
+import { displayHighlights, displayError } from "./modules/side-panel-view.js";
 
-async function initializeApp() {
-  try {
-    const highlights = await getHighlights();
-    displayHighlights(highlights);
-  } catch (error) {
-    displayError(error.message);
-  }
+function refreshHighlights() {
+  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      getHighlights({
+        payload: tabs[0].url,
+        onSuccess: (highlights) => displayHighlights(highlights),
+        onError: (error) => displayError(error.message),
+      });
+    }
+  });
 }
 
-initializeApp();
+refreshHighlights();
