@@ -33,7 +33,7 @@ function handleMessage(request, sender, sendResponse) {
         .then((res) => {
           sendResponse({
             action: "save_success",
-            status: res,
+            data: res,
           });
         })
         .catch((error) => {
@@ -67,7 +67,7 @@ function handleMessage(request, sender, sendResponse) {
         .then((res) => {
           sendResponse({
             action: "update_success",
-            status: res,
+            data: res,
           });
         })
         .catch((error) => {
@@ -84,7 +84,7 @@ function handleMessage(request, sender, sendResponse) {
         .then((res) => {
           sendResponse({
             action: "delete_success",
-            status: res,
+            data: res,
           });
         })
         .catch((error) => {
@@ -114,7 +114,6 @@ function handleMessage(request, sender, sendResponse) {
       break;
 
     default:
-      console.log("Unknown action:", request.action);
       sendResponse({
         action: "unknown_action",
         error: "Unknown action: " + request.action,
