@@ -23,7 +23,7 @@
     }
   ],
   "side_panel": {
-    "default_path": "src/side-panel.html"
+    "default_path": "src/side-panel/index.html"
   },
   "background": {
     "service_worker": "src/background/background.js"
