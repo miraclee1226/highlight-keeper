@@ -6,19 +6,8 @@ import {
   removeHighlight,
 } from "./highlighter/highlight-controller.js";
 
-let currentToolbar = null;
-
-function cleanupCurrentToolbar() {
-  if (currentToolbar) {
-    currentToolbar.cleanup();
-    currentToolbar = null;
-  }
-}
-
 export function createInitialToolbar(selection = null) {
-  cleanupCurrentToolbar();
-
-  currentToolbar = new Toolbar(document.body, {
+  const toolbar = new Toolbar(document.body, {
     onColorSelect: (color) => {
       applyHighlight(color);
     },
@@ -36,20 +25,18 @@ export function createInitialToolbar(selection = null) {
       top: window.scrollY + rect.top - 40,
       left: window.scrollX + rect.left,
     };
-    currentToolbar.show("selection", position);
+    toolbar.show("selection", position);
   }
 }
 
 export function handleHighlightClick(e) {
   e.stopPropagation();
 
-  cleanupCurrentToolbar();
-
   const highlightElement = e.currentTarget;
   const currentColor =
     highlightElement.style.backgroundColor || "rgb(255, 253, 170)";
 
-  currentToolbar = new Toolbar(document.body, {
+  const toolbar = new Toolbar(document.body, {
     currentColor,
     onColorSelect: (color) => {
       const highlightId = highlightElement.dataset.id;
@@ -75,7 +62,6 @@ export function handleHighlightClick(e) {
     },
     onDeleteClick: () => {
       removeHighlight(highlightElement);
-      cleanupCurrentToolbar();
     },
   });
 
@@ -85,5 +71,5 @@ export function handleHighlightClick(e) {
     left: window.scrollX + rect.left,
   };
 
-  currentToolbar.show("highlight", position);
+  toolbar.show("highlight", position);
 }

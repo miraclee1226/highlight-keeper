@@ -3,6 +3,25 @@ import { Button } from "./Button.js";
 import { ColorPalette } from "./ColorPalette.js";
 
 export class Toolbar extends Component {
+  static instance = null;
+
+  constructor($target, props) {
+    if (Toolbar.instance) {
+      Toolbar.instance.cleanup();
+      Toolbar.instance.updateInstance($target, props);
+      return Toolbar.instance;
+    }
+
+    super($target, props);
+    Toolbar.instance = this;
+  }
+
+  updateInstance($target, props) {
+    this.$target = $target;
+    this.props = props;
+    this.setup();
+  }
+
   setup() {
     this.outsideClickHandler = null;
     this.scrollHandler = null;
