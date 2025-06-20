@@ -24,7 +24,9 @@ export function createHighlightElement(highlight) {
     scrollToHighlight({
       payload: highlight.uuid,
       onSuccess: () => {},
-      onError: () => {},
+      onError: (error) => {
+        console.error(error);
+      },
     });
   });
 
