@@ -16,7 +16,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       handleMessage(request, sender, sendResponse);
     })
     .catch((error) => {
-      console.error("Database initialization failed:", error);
       sendResponse({
         action: request.action + "_error",
         error: "Database initialization failed: " + error.message,
@@ -28,24 +27,24 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 function handleMessage(request, sender, sendResponse) {
   switch (request.action) {
-    case "save_highlight":
+    case "create_highlight":
       createHighlight(request.payload)
         .then((res) => {
           sendResponse({
-            action: "save_success",
+            action: "create_success",
             data: res,
           });
         })
         .catch((error) => {
           console.error("Save operation failed:", error);
           sendResponse({
-            action: "save_error",
+            action: "create_error",
             error: error.message || "Unknown error during save operation",
           });
         });
       break;
 
-    case "get_highlights":
+    case "get_highlights_by_href":
       getHighlightsByHref(request.payload)
         .then((res) => {
           sendResponse({
@@ -54,7 +53,6 @@ function handleMessage(request, sender, sendResponse) {
           });
         })
         .catch((error) => {
-          console.error("Get operation failed:", error);
           sendResponse({
             action: "get_error",
             error: error.message || "Unknown error during get operation",
@@ -126,7 +124,7 @@ const DB_VERSION = 1;
 const DB_NAME = "highlightsDB";
 const STORE_NAMES = {
   HIGHLIGHTS: "highlights",
-  HREF_INDEX: "urlIndex",
+  HREF_INDEX: "hrefIndex",
 };
 
 let db = null;
@@ -164,6 +162,13 @@ function initDB() {
     request.onsuccess = function () {
       console.log("DB opened successfully");
       db = request.result;
+
+      db.onversionchange = function () {
+        db.close();
+        db = null;
+        dbInitPromise = null;
+      };
+
       resolve(db);
     };
 
@@ -254,11 +259,7 @@ function getHighlightsByHref(href) {
     hrefRequest.onsuccess = function () {
       const hrefIndex = hrefRequest.result;
 
-      if (
-        !hrefIndex ||
-        !hrefIndex.highlightUuids ||
-        hrefIndex.highlightUuids.length === 0
-      ) {
+      if (!hrefIndex) {
         console.log(`No highlights found for href: ${href}`);
         resolve([]);
         return;
@@ -292,7 +293,7 @@ function getHighlightsByHref(href) {
         });
     };
 
-    hrefRequest.onerror = function (event) {
+    hrefRequest.onerror = function () {
       console.error("Error retrieving highlights by href: ", hrefRequest.error);
       reject(new Error("Failed to retrieve highlights: " + hrefRequest.error));
     };
@@ -359,7 +360,7 @@ function updateHrefIndex(transaction, href, uuid) {
 
     if (!hrefIndex) {
       hrefIndex = {
-        href: href,
+        href,
         highlightUuids: [uuid],
       };
     } else {
@@ -384,102 +385,105 @@ function updateHrefIndex(transaction, href, uuid) {
   };
 }
 
-async function updateHighlight(uuid, updateData) {
+function updateHighlight(uuid, updateData) {
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
 
-  try {
-    const existingHighlight = await getHighlightByUuid(uuid);
+  return getHighlightByUuid(uuid)
+    .then((existingHighlight) => {
+      if (!existingHighlight) {
+        throw new Error(`Highlight with UUID ${uuid} not found`);
+      }
 
-    if (!existingHighlight) {
-      throw new Error(`Highlight with UUID ${uuid} not found`);
-    }
-
-    const updatedHighlight = {
-      ...existingHighlight,
-      ...updateData,
-      updatedAt: Date.now(),
-    };
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAMES.HIGHLIGHTS], "readwrite");
-      const highlightStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
-      const updateRequest = highlightStore.put(updatedHighlight);
-
-      updateRequest.onsuccess = function () {
-        console.log(`Highlight ${uuid} updated successfully`);
+      const updatedHighlight = {
+        ...existingHighlight,
+        ...updateData,
+        updatedAt: Date.now(),
       };
 
-      updateRequest.onerror = function () {
-        console.error("Error updating highlight: ", updateRequest.error);
-      };
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(
+          [STORE_NAMES.HIGHLIGHTS],
+          "readwrite"
+        );
+        const highlightStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
+        const updateRequest = highlightStore.put(updatedHighlight);
 
-      transaction.oncomplete = function () {
-        console.log("Update transaction complete");
-        resolve(updatedHighlight);
-      };
+        updateRequest.onsuccess = function () {
+          console.log(`Highlight ${uuid} updated successfully`);
+        };
 
-      transaction.onerror = function (event) {
-        console.error("Update transaction error:", event.target.error);
-        reject(new Error("Failed to update highlight: " + event.target.error));
-      };
+        updateRequest.onerror = function () {
+          console.error("Error updating highlight: ", updateRequest.error);
+        };
+
+        transaction.oncomplete = function () {
+          console.log("Update transaction complete");
+          resolve(updatedHighlight);
+        };
+
+        transaction.onerror = function (event) {
+          console.error("Update transaction error:", event.target.error);
+          reject(
+            new Error("Failed to update highlight: " + event.target.error)
+          );
+        };
+      });
+    })
+    .catch((error) => {
+      console.error("Error in updateHighlight: ", error);
+      throw new Error("Failed to update highlight: " + error.message);
     });
-  } catch (error) {
-    console.error("Error in updateHighlight: ", error);
-    return Promise.reject(
-      new Error("Failed to update highlight: " + error.message)
-    );
-  }
 }
 
-async function deleteHighlight(uuid) {
+function deleteHighlight(uuid) {
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
 
-  try {
-    const highlight = await getHighlightByUuid(uuid);
+  return getHighlightByUuid(uuid)
+    .then((highlight) => {
+      if (!highlight) {
+        console.log(`Highlight with UUID ${uuid} not found`);
+        return Promise.resolve(false);
+      }
 
-    if (!highlight) {
-      console.log(`Highlight with UUID ${uuid} not found`);
-      return Promise.resolve(false);
-    }
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(
+          [STORE_NAMES.HIGHLIGHTS, STORE_NAMES.HREF_INDEX],
+          "readwrite"
+        );
+        const highlightStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
+        const deleteRequest = highlightStore.delete(uuid);
 
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(
-        [STORE_NAMES.HIGHLIGHTS, STORE_NAMES.HREF_INDEX],
-        "readwrite"
-      );
-      const highlightStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
-      const deleteRequest = highlightStore.delete(uuid);
+        deleteRequest.onsuccess = function () {
+          console.log(`Highlight ${uuid} deleted successfully`);
 
-      deleteRequest.onsuccess = function () {
-        console.log(`Highlight ${uuid} deleted successfully`);
+          updateHrefIndexForDeletion(transaction, highlight.href, uuid);
+        };
 
-        updateHrefIndexForDeletion(transaction, highlight.href, uuid);
-      };
+        deleteRequest.onerror = function () {
+          console.error("Error deleting highlight: ", deleteRequest.error);
+        };
 
-      deleteRequest.onerror = function () {
-        console.error("Error deleting highlight: ", deleteRequest.error);
-      };
+        transaction.oncomplete = function () {
+          console.log("Delete transaction complete");
+          resolve(true);
+        };
 
-      transaction.oncomplete = function () {
-        console.log("Delete transaction complete");
-        resolve(true);
-      };
-
-      transaction.onerror = function (event) {
-        console.error("Delete transaction error:", event.target.error);
-        reject(new Error("Failed to delete highlight: " + event.target.error));
-      };
+        transaction.onerror = function (event) {
+          console.error("Delete transaction error:", event.target.error);
+          reject(
+            new Error("Failed to delete highlight: " + event.target.error)
+          );
+        };
+      });
+    })
+    .catch((error) => {
+      console.error("Error in deleteHighlight: ", error);
+      throw new Error("Failed to delete highlight: " + error.message);
     });
-  } catch (error) {
-    console.error("Error in deleteHighlight: ", error);
-    return Promise.reject(
-      new Error("Failed to delete highlight: " + error.message)
-    );
-  }
 }
 
 function updateHrefIndexForDeletion(transaction, href, uuid) {

@@ -1,7 +1,7 @@
 export function getHighlights({ payload, onSuccess, onError }) {
   chrome.runtime.sendMessage(
     {
-      action: "get_highlights",
+      action: "get_highlights_by_href",
       payload,
     },
     (response) => {
@@ -14,7 +14,7 @@ export function getHighlights({ payload, onSuccess, onError }) {
   );
 }
 
-export function saveHighlight({ payload, onSuccess, onError }) {
+export function createHighlight({ payload, onSuccess, onError }) {
   const { originalDOMInfo, highlightId, color } = payload;
   const highlightData = {
     uuid: highlightId,
@@ -35,14 +35,14 @@ export function saveHighlight({ payload, onSuccess, onError }) {
 
   chrome.runtime.sendMessage(
     {
-      action: "save_highlight",
+      action: "create_highlight",
       payload: highlightData,
     },
     (response) => {
-      if (response.action === "save_success") {
+      if (response.action === "create_success") {
         notifySidePanel("highlight_created", highlightData);
         onSuccess();
-      } else if (response.action === "save_error") {
+      } else if (response.action === "create_error") {
         onError(new Error(response.error));
       }
     }
