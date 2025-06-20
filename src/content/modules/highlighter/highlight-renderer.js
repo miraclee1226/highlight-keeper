@@ -1,11 +1,6 @@
 import { COLORS } from "../../../constant/colors.js";
 import { handleHighlightClick } from "../toolbar.js";
 
-export function generateHighlightId() {
-  const randomId = crypto.randomUUID();
-  return "highlight-" + randomId;
-}
-
 export function createHighlightElement(highlightText, highlightId, color) {
   const span = document.createElement("span");
 

@@ -5,7 +5,6 @@ import {
   hasCurrentSelection,
 } from "./selection-manager.js";
 import {
-  generateHighlightId,
   applyUnifiedHighlight,
   removeAllHighlightElements,
 } from "./highlight-renderer.js";
@@ -16,6 +15,7 @@ import {
 } from "../../../api/highlight.js";
 import { getOriginalDOMInfo, getRangeFromRelativeOffset } from "./dom-utils.js";
 import { createInitialToolbar } from "./../toolbar.js";
+import { generateId } from "../../../utils/id-generator.js";
 
 export function handleHighlighting() {
   const selection = captureSelection();
@@ -39,7 +39,7 @@ export function applyHighlight(color) {
 
   if (!originalDOMInfo) return null;
 
-  const highlightId = generateHighlightId();
+  const highlightId = generateId();
   const highlightElements = applyUnifiedHighlight(
     selection.range,
     highlightId,
