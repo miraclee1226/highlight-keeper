@@ -104,9 +104,19 @@ export function deleteHighlight(highlightId) {
 
 export function scrollToHighlight(uuid) {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, {
-      action: "scroll_to_highlight",
-      payload: uuid,
-    });
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      {
+        action: "scroll_to_highlight",
+        payload: uuid,
+      },
+      (response) => {
+        if (response.action === "scroll_success") {
+          onSuccess();
+        } else if (response.action === "scroll_error") {
+          onError(new Error(response.error));
+        }
+      }
+    );
   });
 }

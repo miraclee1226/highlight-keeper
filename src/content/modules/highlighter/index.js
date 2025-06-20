@@ -4,6 +4,18 @@ import {
   restoreHighlightData,
 } from "./highlight-controller.js";
 
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.action === "scroll_to_highlight") {
+    const success = scrollToHighlightElement(request.payload);
+
+    if (success) {
+      sendResponse({ status: "scroll_success" });
+    } else {
+      sendResponse({ status: "scroll_error", error: "Highlight not found" });
+    }
+  }
+});
+
 function restoreHighlights() {
   getHighlights({
     payload: location.href,
@@ -52,23 +64,6 @@ urlChangeObserver.observe(document, {
   childList: true,
 });
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === "get_success") {
-    renderAllHighlights(request.data);
-    sendResponse({ status: "rendered" });
-  }
-
-  if (request.action === "get_error") {
-    console.error("Failed to get highlights:", request.error);
-    sendResponse({ status: "error" });
-  }
-
-  if (request.action === "scroll_to_highlight") {
-    scrollToHighlightElement(request.payload);
-    sendResponse({ status: "scrolled" });
-  }
-});
-
 function renderAllHighlights(highlights) {
   if (!highlights || highlights.length === 0) return;
 
@@ -115,4 +110,6 @@ function scrollToHighlightElement(uuid) {
       }, 2000);
     });
   }
+
+  return true;
 }
