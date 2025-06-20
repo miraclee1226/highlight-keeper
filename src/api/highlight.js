@@ -5,28 +5,17 @@ export function getHighlights({ payload, onSuccess, onError }) {
       payload,
     },
     (response) => {
-      if (chrome.runtime.lastError) {
-        onError(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-
-      if (!response) {
-        onError(new Error("No response from background script"));
-        return;
-      }
-
       if (response.action === "get_success") {
         onSuccess(response.data);
       } else if (response.action === "get_error") {
         onError(new Error(response.error));
-      } else {
-        onError(new Error("Unexpected response format"));
       }
     }
   );
 }
 
-export function saveHighlight(originalDOMInfo, highlightId, color) {
+export function saveHighlight({ payload, onSuccess, onError }) {
+  const { originalDOMInfo, highlightId, color } = payload;
   const highlightData = {
     uuid: highlightId,
     href: window.location.href,
@@ -51,16 +40,17 @@ export function saveHighlight(originalDOMInfo, highlightId, color) {
     },
     (response) => {
       if (response.action === "save_success") {
-        chrome.runtime.sendMessage({
-          action: "highlight_created",
-          data: highlightData,
-        });
+        notifySidePanel("highlight_created", highlightData);
+        onSuccess();
+      } else if (response.action === "save_error") {
+        onError(new Error(response.error));
       }
     }
   );
 }
 
-export function updateHighlight(highlightId, updates) {
+export function updateHighlight({ payload, onSuccess, onError }) {
+  const { highlightId, updates } = payload;
   const updateData = { ...updates, updatedAt: Date.now() };
 
   chrome.runtime.sendMessage(
@@ -73,42 +63,45 @@ export function updateHighlight(highlightId, updates) {
     },
     (response) => {
       if (response.action === "update_success") {
-        chrome.runtime.sendMessage({
-          action: "highlight_updated",
-          data: {
-            uuid: highlightId,
-            ...updateData,
-          },
+        notifySidePanel("highlight_updated", {
+          uuid: highlightId,
+          ...updateData,
         });
+        onSuccess();
+      } else if (response.action === "update_error") {
+        onError(new Error(response.error));
       }
     }
   );
 }
 
-export function deleteHighlight(highlightId) {
-  chrome.runtime.sendMessage(
-    {
-      action: "delete_highlight",
-      payload: highlightId,
-    },
-    (response) => {
-      if (response.action === "delete_success") {
-        chrome.runtime.sendMessage({
-          action: "highlight_deleted",
-          data: { uuid: highlightId },
-        });
+export function deleteHighlight({ payload, onSuccess, onError }) {
+  const { highlightId } = payload;
+  {
+    chrome.runtime.sendMessage(
+      {
+        action: "delete_highlight",
+        payload: highlightId,
+      },
+      (response) => {
+        if (response.action === "delete_success") {
+          notifySidePanel("highlight_deleted", { uuid: highlightId });
+          onSuccess();
+        } else if (response.action === "delete_error") {
+          onError(new Error(response.error));
+        }
       }
-    }
-  );
+    );
+  }
 }
 
-export function scrollToHighlight(uuid) {
+export function scrollToHighlight({ payload, onSuccess, onError }) {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, function (tabs) {
     chrome.tabs.sendMessage(
       tabs[0].id,
       {
         action: "scroll_to_highlight",
-        payload: uuid,
+        payload,
       },
       (response) => {
         if (response.action === "scroll_success") {
@@ -118,5 +111,12 @@ export function scrollToHighlight(uuid) {
         }
       }
     );
+  });
+}
+
+function notifySidePanel(action, data) {
+  chrome.runtime.sendMessage({
+    action,
+    data,
   });
 }

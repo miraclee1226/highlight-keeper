@@ -75,20 +75,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   switch (request.action) {
     case "highlight_created":
       handleHighlightCreated(request.data);
-      sendResponse({ status: "sync_complete" });
       break;
 
     case "highlight_updated":
       handleHighlightUpdated(request.data);
-      sendResponse({ status: "sync_complete" });
       break;
 
     case "highlight_deleted":
       handleHighlightDeleted(request.data);
-      sendResponse({ status: "sync_complete" });
-      break;
-
-    default:
       break;
   }
 });

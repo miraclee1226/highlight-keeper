@@ -21,8 +21,9 @@ export function createHighlightElement(highlight) {
   });
 
   noteDiv.addEventListener("click", () => {
-    scrollToHighlight(highlight.uuid, {
-      onSucess: () => {},
+    scrollToHighlight({
+      payload: highlight.uuid,
+      onSuccess: () => {},
       onError: () => {},
     });
   });

@@ -135,7 +135,16 @@ export class NoteEditor extends Component {
       }
     });
 
-    updateHighlight(highlightId, { note });
+    updateHighlight({
+      payload: {
+        highlightId,
+        updates: { note },
+      },
+      onSuccess: () => {},
+      onError: (error) => {
+        console.error(error);
+      },
+    });
   }
 
   show(highlightElement) {

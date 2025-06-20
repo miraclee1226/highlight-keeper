@@ -46,7 +46,13 @@ export function applyHighlight(color) {
     color
   );
 
-  saveHighlight(originalDOMInfo, highlightId, color);
+  saveHighlight({
+    payload: { originalDOMInfo, highlightId, color },
+    onSuccess: () => {},
+    onError: (error) => {
+      console.error(error);
+    },
+  });
 
   clearCurrentSelection();
 
@@ -58,8 +64,15 @@ export function removeHighlight(highlightElement) {
 
   if (!highlightId) return;
 
-  deleteHighlight(highlightId);
-  removeAllHighlightElements(highlightId);
+  deleteHighlight({
+    payload: { highlightId },
+    onSuccess: () => {
+      removeAllHighlightElements(highlightId);
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
 }
 
 export function updateHighlightColor(highlightId, newColor) {

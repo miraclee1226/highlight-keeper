@@ -50,7 +50,16 @@ export function handleHighlightClick(e) {
         element.dataset.color = color;
       });
 
-      updateHighlight(highlightId, { color });
+      updateHighlight({
+        payload: {
+          highlightId,
+          updates: { color },
+        },
+        onSuccess: () => {},
+        onError: (error) => {
+          console.error(error);
+        },
+      });
     },
     onNoteClick: () => {
       openNoteEditor(highlightElement);
