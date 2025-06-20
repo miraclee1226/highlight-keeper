@@ -9,12 +9,38 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     const success = scrollToHighlightElement(request.payload);
 
     if (success) {
-      sendResponse({ status: "scroll_success" });
+      sendResponse({ action: "scroll_success" });
     } else {
-      sendResponse({ status: "scroll_error", error: "Highlight not found" });
+      sendResponse({ action: "scroll_error", error: "Highlight not found" });
     }
   }
 });
+
+function scrollToHighlightElement(uuid) {
+  const highlightElements = document.querySelectorAll(`[data-id="${uuid}"]`);
+
+  if (highlightElements.length === 0) {
+    return false;
+  }
+
+  const firstElement = highlightElements[0];
+
+  firstElement.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+
+  highlightElements.forEach((element) => {
+    element.classList.add("highlight-flash");
+    setTimeout(() => {
+      element.classList.remove("highlight-flash");
+    }, 2000);
+  });
+
+  return true;
+}
+
+let lastUrl = location.href;
 
 function restoreHighlights() {
   getHighlights({
@@ -24,92 +50,61 @@ function restoreHighlights() {
   });
 }
 
-function safeExecute(callback) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", callback);
-  } else {
-    callback();
-
-    [2000, 5000, 10000].forEach((delay) => {
-      setTimeout(callback, delay);
-    });
-  }
-}
-
-function initializeHighlighting() {
-  restoreHighlights();
-
-  document.addEventListener("mouseup", (e) => {
-    if (e.target.closest(".toolbar") || e.target.closest(".note-editor"))
-      return;
-    handleHighlighting();
-  });
-}
-
-safeExecute(initializeHighlighting);
-
-// Detect URL changes (SPA support)
-let lastUrl = location.href;
-const urlChangeObserver = new MutationObserver(() => {
-  const url = location.href;
-
-  if (url !== lastUrl) {
-    lastUrl = url;
-    setTimeout(() => restoreHighlights(), 1500);
-  }
-});
-
-urlChangeObserver.observe(document, {
-  subtree: true,
-  childList: true,
-});
-
 function renderAllHighlights(highlights) {
   if (!highlights || highlights.length === 0) return;
 
   highlights.forEach((highlight, index) => {
     setTimeout(() => {
       renderSingleHighlight(highlight);
-    }, index * 100);
+    }, index * 50);
   });
 }
 
 function renderSingleHighlight(highlight) {
   const restoredhighlight = restoreHighlightData(highlight);
-  const note = highlight.note;
+  const restoredNote = highlight.note;
 
-  if (restoredhighlight) {
-    const allHighlightElements = document.querySelectorAll(
+  if (restoredhighlight && restoredNote) {
+    const allElements = document.querySelectorAll(
       `[data-id="${highlight.uuid}"]`
     );
+    allElements.forEach((element) => {
+      element.dataset.note = restoredNote;
+    });
+  }
+}
 
-    if (note) {
-      allHighlightElements.forEach((element) => {
-        element.dataset.note = note;
-      });
+function urlChangeDetection() {
+  const urlChangeObserver = new MutationObserver(() => {
+    const currentUrl = location.href;
+
+    if (currentUrl !== lastUrl) {
+      lastUrl = currentUrl;
+      renderAllHighlights();
     }
-  }
+  });
+
+  urlChangeObserver.observe(document, {
+    subtree: true,
+    childList: true,
+  });
 }
 
-function scrollToHighlightElement(uuid) {
-  const highlightElement = document.querySelectorAll(`[data-id="${uuid}"]`);
+function highlightCreation() {
+  document.addEventListener("mouseup", (e) => {
+    if (e.target.closest(".toolbar") || e.target.closest(".note-editor"))
+      return;
 
-  if (highlightElement.length > 0) {
-    const firstElement = highlightElement[0];
-
-    firstElement.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-
-    highlightElement.forEach((element) => {
-      element.classList.add("highlight-flash");
-
-      setTimeout(() => {
-        element.classList.remove("highlight-flash");
-      }, 2000);
-    });
-  }
-
-  return true;
+    handleHighlighting();
+  });
 }
+
+function retryRestoreHighlights() {
+  [0, 1000, 2000, 3000].forEach((delay) => {
+    setTimeout(restoreHighlights, delay);
+  });
+}
+
+retryRestoreHighlights();
+urlChangeDetection();
+highlightCreation();
