@@ -158,7 +158,7 @@ function calculateEndOffset(textNode, range, textLength) {
   return endPosition;
 }
 
-export function removeHighlightElement(highlightElement) {
+function removeHighlightElement(highlightElement) {
   const fragment = document.createDocumentFragment();
   const parentNode = highlightElement.parentNode;
 
