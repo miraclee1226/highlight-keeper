@@ -9,7 +9,7 @@ import {
   removeAllHighlightElements,
 } from "./highlight-renderer.js";
 import {
-  saveHighlight,
+  createHighlight,
   updateHighlight,
   deleteHighlight,
 } from "../../../api/highlight.js";
@@ -46,7 +46,7 @@ export function applyHighlight(color) {
     color
   );
 
-  saveHighlight({
+  createHighlight({
     payload: { originalDOMInfo, highlightId, color },
     onSuccess: () => {},
     onError: (error) => {
