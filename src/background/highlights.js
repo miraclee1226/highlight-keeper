@@ -1,187 +1,8 @@
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
+import { STORE_NAMES } from "../constant/database.js";
+import { getDB } from "./db-connection.js";
 
-chrome.runtime.onInstalled.addListener(function (details) {
-  if (details.reason === "install") {
-    console.log("Extension installed - DB will be initialized when first used");
-  } else if (details.reason === "update") {
-    console.log("Extension updated");
-  }
-});
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  initDB()
-    .then(() => {
-      handleMessage(request, sender, sendResponse);
-    })
-    .catch((error) => {
-      sendResponse({
-        action: request.action + "_error",
-        error: "Database initialization failed: " + error.message,
-      });
-    });
-
-  return true;
-});
-
-function handleMessage(request, sender, sendResponse) {
-  switch (request.action) {
-    case "create_highlight":
-      createHighlight(request.payload)
-        .then((res) => {
-          sendResponse({
-            action: "create_success",
-            data: res,
-          });
-        })
-        .catch((error) => {
-          console.error("Save operation failed:", error);
-          sendResponse({
-            action: "create_error",
-            error: error.message || "Unknown error during save operation",
-          });
-        });
-      break;
-
-    case "get_highlights_by_href":
-      getHighlightsByHref(request.payload)
-        .then((res) => {
-          sendResponse({
-            action: "get_success",
-            data: res,
-          });
-        })
-        .catch((error) => {
-          sendResponse({
-            action: "get_error",
-            error: error.message || "Unknown error during get operation",
-          });
-        });
-      break;
-
-    case "update_highlight":
-      updateHighlight(request.payload.uuid, request.payload.data)
-        .then((res) => {
-          sendResponse({
-            action: "update_success",
-            data: res,
-          });
-        })
-        .catch((error) => {
-          console.error("Update operation failed:", error);
-          sendResponse({
-            action: "update_error",
-            error: error.message || "Unknown error during update operation",
-          });
-        });
-      break;
-
-    case "delete_highlight":
-      deleteHighlight(request.payload)
-        .then((res) => {
-          sendResponse({
-            action: "delete_success",
-            data: res,
-          });
-        })
-        .catch((error) => {
-          console.error("Delete operation failed:", error);
-          sendResponse({
-            action: "delete_error",
-            error: error.message || "Unknown error during delete operation",
-          });
-        });
-      break;
-
-    case "get_all_highlights":
-      getAllHighlights()
-        .then((res) => {
-          sendResponse({
-            action: "get_all_success",
-            data: res,
-          });
-        })
-        .catch((error) => {
-          console.error("Get all operation failed:", error);
-          sendResponse({
-            action: "get_all_error",
-            error: error.message || "Unknown error during get all operation",
-          });
-        });
-      break;
-
-    default:
-      sendResponse({
-        action: "unknown_action",
-        error: "Unknown action: " + request.action,
-      });
-      break;
-  }
-}
-
-const DB_VERSION = 1;
-const DB_NAME = "highlightsDB";
-const STORE_NAMES = {
-  HIGHLIGHTS: "highlights",
-  HREF_INDEX: "hrefIndex",
-};
-
-let db = null;
-let dbInitPromise = null;
-
-function initDB() {
-  if (dbInitPromise) {
-    return dbInitPromise;
-  }
-
-  dbInitPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = function () {
-      db = request.result;
-
-      if (!db.objectStoreNames.contains(STORE_NAMES.HIGHLIGHTS)) {
-        db.createObjectStore(STORE_NAMES.HIGHLIGHTS, {
-          keyPath: "uuid",
-        });
-      }
-
-      if (!db.objectStoreNames.contains(STORE_NAMES.HREF_INDEX)) {
-        db.createObjectStore(STORE_NAMES.HREF_INDEX, {
-          keyPath: "href",
-        });
-      }
-
-      db.onversionchange = function () {
-        db.close();
-        console.warn("Database is outdated, please reload the extension.");
-      };
-    };
-
-    request.onsuccess = function () {
-      console.log("DB opened successfully");
-      db = request.result;
-
-      db.onversionchange = function () {
-        db.close();
-        db = null;
-        dbInitPromise = null;
-      };
-
-      resolve(db);
-    };
-
-    request.onerror = function () {
-      console.error("Error opening DB: ", request.error);
-      reject(request.error);
-    };
-  });
-
-  return dbInitPromise;
-}
-
-function getAllHighlights() {
+export function getAllHighlights() {
+  const db = getDB();
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
@@ -213,7 +34,8 @@ function getAllHighlights() {
   });
 }
 
-function getHighlightByUuid(uuid) {
+export function getHighlightByUuid(uuid) {
+  const db = getDB();
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
@@ -243,7 +65,8 @@ function getHighlightByUuid(uuid) {
   });
 }
 
-function getHighlightsByHref(href) {
+export function getHighlightsByHref(href) {
+  const db = getDB();
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
@@ -283,7 +106,6 @@ function getHighlightsByHref(href) {
       Promise.all(promises)
         .then((results) => {
           const highlights = results.filter((h) => h !== null);
-
           highlights.sort((a, b) => a.createdAt - b.createdAt);
           resolve(highlights);
         })
@@ -305,7 +127,8 @@ function getHighlightsByHref(href) {
   });
 }
 
-function createHighlight(highlight) {
+export function createHighlight(highlight) {
+  const db = getDB();
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
@@ -351,41 +174,8 @@ function createHighlight(highlight) {
   });
 }
 
-function updateHrefIndex(transaction, href, uuid) {
-  const objectStore = transaction.objectStore(STORE_NAMES.HREF_INDEX);
-  const request = objectStore.get(href);
-
-  request.onsuccess = function () {
-    let hrefIndex = request.result;
-
-    if (!hrefIndex) {
-      hrefIndex = {
-        href,
-        highlightUuids: [uuid],
-      };
-    } else {
-      if (!hrefIndex.highlightUuids.includes(uuid)) {
-        hrefIndex.highlightUuids.push(uuid);
-      }
-    }
-
-    const updateRequest = objectStore.put(hrefIndex);
-
-    updateRequest.onsuccess = function () {
-      console.log(`Updated URL index for ${href} with UUID ${uuid}`);
-    };
-
-    updateRequest.onerror = function () {
-      console.error("Error updating URL index: ", updateRequest.error);
-    };
-  };
-
-  request.onerror = function () {
-    console.error("Error retrieving URL index: ", request.error);
-  };
-}
-
-function updateHighlight(uuid, updateData) {
+export function updateHighlight(uuid, updateData) {
+  const db = getDB();
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
@@ -437,7 +227,8 @@ function updateHighlight(uuid, updateData) {
     });
 }
 
-function deleteHighlight(uuid) {
+export function deleteHighlight(uuid) {
+  const db = getDB();
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
   }
@@ -459,7 +250,6 @@ function deleteHighlight(uuid) {
 
         deleteRequest.onsuccess = function () {
           console.log(`Highlight ${uuid} deleted successfully`);
-
           updateHrefIndexForDeletion(transaction, highlight.href, uuid);
         };
 
@@ -484,6 +274,40 @@ function deleteHighlight(uuid) {
       console.error("Error in deleteHighlight: ", error);
       throw new Error("Failed to delete highlight: " + error.message);
     });
+}
+
+function updateHrefIndex(transaction, href, uuid) {
+  const objectStore = transaction.objectStore(STORE_NAMES.HREF_INDEX);
+  const request = objectStore.get(href);
+
+  request.onsuccess = function () {
+    let hrefIndex = request.result;
+
+    if (!hrefIndex) {
+      hrefIndex = {
+        href,
+        highlightUuids: [uuid],
+      };
+    } else {
+      if (!hrefIndex.highlightUuids.includes(uuid)) {
+        hrefIndex.highlightUuids.push(uuid);
+      }
+    }
+
+    const updateRequest = objectStore.put(hrefIndex);
+
+    updateRequest.onsuccess = function () {
+      console.log(`Updated URL index for ${href} with UUID ${uuid}`);
+    };
+
+    updateRequest.onerror = function () {
+      console.error("Error updating URL index: ", updateRequest.error);
+    };
+  };
+
+  request.onerror = function () {
+    console.error("Error retrieving URL index: ", request.error);
+  };
 }
 
 function updateHrefIndexForDeletion(transaction, href, uuid) {
