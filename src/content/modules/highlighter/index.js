@@ -1,8 +1,12 @@
 import { getHighlights } from "../../../api/highlight.js";
+import { Toolbar } from "../../../components/toolbar/index.js";
+import { COLORS } from "../../../constant/colors.js";
 import {
+  applyHighlight,
   handleHighlighting,
   restoreHighlightData,
 } from "./highlight-controller.js";
+import { captureSelection } from "./selection-manager.js";
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "scroll_to_highlight") {
@@ -12,6 +16,18 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       sendResponse({ action: "scroll_success" });
     } else {
       sendResponse({ action: "scroll_error", error: "Highlight not found" });
+    }
+  }
+
+  if (request.action === "highlight_shortucut") {
+    if (Toolbar.instance) {
+      Toolbar.instance.hide();
+    }
+
+    const selection = captureSelection();
+
+    if (selection) {
+      applyHighlight(COLORS[0]);
     }
   }
 });

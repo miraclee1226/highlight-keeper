@@ -29,15 +29,24 @@
     "service_worker": "src/background/index.js",
     "type": "module"
   },
+  "commands": {
+    "execute_highlight": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "Highlight selected text"
+    },
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+A",
+        "mac": "Alt+A"
+      }
+    }
+  },
   "web_accessible_resources": [
     {
-      "resources": [
-        "src/**/*.js",
-        "public/icons/logo.png",
-        "public/icons/note.svg",
-        "public/icons/bulb.svg",
-        "public/icons/delete.svg"
-      ],
+      "resources": ["src/**/*.js", "public/icons/*.svg", "public/icons/*.png"],
       "matches": ["<all_urls>"]
     }
   ]

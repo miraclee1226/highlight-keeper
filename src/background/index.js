@@ -27,3 +27,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
   return true;
 });
+
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "execute_highlight") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        action: "highlight_shortucut",
+      });
+    });
+  }
+});
