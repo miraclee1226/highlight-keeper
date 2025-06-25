@@ -1,39 +1,27 @@
-import { escapeHtml, formatDate } from "../../utils/formatter.js";
-import { scrollToHighlight } from "../../api/highlight.js";
+import { formatDate, escapeHtml } from "../utils/formatter.js";
 
 export function createHighlightElement(highlight) {
-  const noteDiv = document.createElement("div");
-  noteDiv.className = "note";
-  noteDiv.dataset.id = highlight.uuid;
+  const element = document.createElement("div");
+  element.className = "note";
+  element.dataset.id = highlight.uuid;
 
   const date = new Date(highlight.createdAt);
   const formattedDate = formatDate(date);
-
   const highlightColor = highlight.color;
   const highlightText = highlight.selection?.text ?? "No text";
   const noteText = highlight.note ?? "";
 
-  noteDiv.innerHTML = createHighlightHTML({
+  element.innerHTML = highlightHTML({
     formattedDate,
     highlightColor,
     highlightText,
     noteText,
   });
 
-  noteDiv.addEventListener("click", () => {
-    scrollToHighlight({
-      payload: highlight.uuid,
-      onSuccess: () => {},
-      onError: (error) => {
-        console.error(error);
-      },
-    });
-  });
-
-  return noteDiv;
+  return element;
 }
 
-function createHighlightHTML({
+function highlightHTML({
   formattedDate,
   highlightColor,
   highlightText,
@@ -62,4 +50,30 @@ function createMemoHTML(noteText) {
       </p>
     </div>
   `;
+}
+
+export function updateHighlightNote(element, noteText) {
+  const existingMemo = element.querySelector(".note__memo");
+  const hasNote = noteText && noteText.trim();
+
+  if (hasNote) {
+    if (existingMemo) {
+      const noteTextElement = existingMemo.querySelector(".note__text");
+      noteTextElement.textContent = noteText;
+    } else {
+      const memoHTML = createMemoHTML(noteText);
+      element.insertAdjacentHTML("beforeend", memoHTML);
+    }
+  } else {
+    if (existingMemo) {
+      existingMemo.remove();
+    }
+  }
+}
+
+export function updateHighlightColor(element, dotColor) {
+  const dot = element.querySelector(".note__dot");
+  if (dot) {
+    dot.style.backgroundColor = dotColor;
+  }
 }
