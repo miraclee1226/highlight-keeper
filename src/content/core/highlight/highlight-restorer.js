@@ -2,72 +2,91 @@ import { renderHighlight } from "./highlight-renderer.js";
 import { getHighlights } from "../../../bridge/highlight-bridge.js";
 import { getRangeFromRelativeOffset } from "../../utils/dom-utils.js";
 
-let lastUrl = location.href;
+let isRestoring = false;
 
 export async function restorePageHighlights() {
+  if (isRestoring) return;
+
   try {
+    isRestoring = true;
+
     const highlights = await getHighlights(location.href);
 
     if (!highlights || highlights.length === 0) return;
 
-    let restored = false;
-    const attempts = [0, 1000, 2000, 3000];
-
-    attempts.forEach((attempt) => {
-      setTimeout(() => {
-        if (!restored) {
-          highlights.forEach((highlight) => {
-            restoreHighlight(highlight);
-          });
-
-          restored = true;
-        }
-      }, attempt);
-    });
+    await waitForDOMReady();
+    attemptRestore(highlights);
   } catch (error) {
     console.error("Failed to restore highlights:", error);
+  } finally {
+    isRestoring = false;
   }
 }
 
-export function setupUrlChangeDetection() {
-  const observer = new MutationObserver(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      setTimeout(restorePageHighlights, 500);
+async function waitForDOMReady() {
+  return new Promise((resolve) => {
+    if (document.readyState === "complete") {
+      resolve();
+    } else {
+      window.addEventListener("load", resolve);
     }
   });
+}
 
-  observer.observe(document, { subtree: true, childList: true });
+function attemptRestore(highlights) {
+  const attempts = [0, 500, 1000, 2000, 4000];
+
+  attempts.forEach((delay) => {
+    setTimeout(() => {
+      highlights.forEach((highlight) => {
+        restoreHighlight(highlight);
+      });
+    }, delay);
+  });
 }
 
 function restoreHighlight(highlightData) {
-  const { selection } = highlightData;
+  if (isAlreadyRestored(highlightData.uuid)) return true;
 
-  const startElement = document.querySelector(selection.startContainerPath);
-  const endElement = document.querySelector(selection.endContainerPath);
+  try {
+    const { selection } = highlightData;
 
-  if (!startElement || !endElement) return false;
+    const startElement = document.querySelector(selection.startContainerPath);
+    const endElement = document.querySelector(selection.endContainerPath);
 
-  const range = getRangeFromRelativeOffset(
-    startElement,
-    endElement,
-    selection.startOffset,
-    selection.endOffset
-  );
+    if (!startElement || !endElement) {
+      return false;
+    }
 
-  if (!range) return false;
+    const range = getRangeFromRelativeOffset(
+      startElement,
+      endElement,
+      selection.startOffset,
+      selection.endOffset
+    );
 
-  const elements = renderHighlight(
-    range,
-    highlightData.uuid,
-    highlightData.color
-  );
+    if (!range) {
+      return false;
+    }
 
-  if (highlightData.note) {
-    elements.forEach((element) => {
-      element.dataset.note = highlightData.note;
-    });
+    const elements = renderHighlight(
+      range,
+      highlightData.uuid,
+      highlightData.color
+    );
+
+    if (highlightData.note) {
+      elements.forEach((element) => {
+        element.dataset.note = highlightData.note;
+      });
+    }
+
+    return elements.length > 0;
+  } catch (error) {
+    return false;
   }
+}
 
-  return elements.length > 0;
+function isAlreadyRestored(highlightId) {
+  return document.querySelector(`[data-id="${highlightId}"]`) !== null;
 }

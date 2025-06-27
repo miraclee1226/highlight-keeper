@@ -4,10 +4,7 @@ import {
   deleteHighlight,
   scrollToHighlight,
 } from "./highlight-service.js";
-import {
-  restorePageHighlights,
-  setupUrlChangeDetection,
-} from "./highlight-restorer.js";
+import { restorePageHighlights } from "./highlight-restorer.js";
 import {
   captureCurrentSelection,
   clearSelection,
@@ -22,7 +19,6 @@ import { COLORS } from "../../../constant/colors.js";
 
 export async function initializeHighlightManager() {
   await restorePageHighlights();
-  setupUrlChangeDetection();
 }
 
 export function handleTextSelection(selection, callbacks) {
