@@ -1,29 +1,26 @@
-import {
-  listenToTabActivation,
-  listenToTabUpdate,
-  getCurrentTab,
-  getTabById,
-} from "../api/chrome-api.js";
-import { setCurrentUrl } from "../app/app.js";
+import { handleTabChange } from "../core/highlight-service.js";
+import { setCurrentUrl } from "../state/url-state.js";
 
-export function setupTabEvents(loadHighlights) {
-  listenToTabActivation(async (activeInfo) => {
-    const tab = await getTabById(activeInfo.tabId);
-    const tabUrl = tab?.url;
-
-    if (tabUrl) {
-      setCurrentUrl(tabUrl);
-      await loadHighlights(tabUrl);
-    }
+export function setupTabEvents() {
+  chrome.tabs.onActivated.addListener((activeInfo) => {
+    chrome.tabs.get(activeInfo.tabId, (tab) => {
+      const tabUrl = tab?.url;
+      if (tabUrl) {
+        setCurrentUrl(tabUrl);
+        handleTabChange(tabUrl);
+      }
+    });
   });
 
-  listenToTabUpdate(async (tabId, changeInfo, tab) => {
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url) {
-      const currentTab = await getCurrentTab();
-      if (currentTab && currentTab.id === tabId) {
-        setCurrentUrl(changeInfo.url);
-        await loadHighlights(changeInfo.url);
-      }
+      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+        const currentTab = tabs[0];
+        if (currentTab && currentTab.id === tabId) {
+          setCurrentUrl(changeInfo.url);
+          handleTabChange(changeInfo.url);
+        }
+      });
     }
   });
 }

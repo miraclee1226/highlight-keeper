@@ -2,9 +2,7 @@ import {
   createHighlightElement,
   updateHighlightNote,
   updateHighlightColor,
-} from "../templates/highlight-template.js";
-import { emptyStateHTML } from "../templates/empty-state-template.js";
-import { errorStateHTML } from "../templates/error-state-template.js";
+} from "./highlight-element.js";
 
 export function renderHighlights(container, highlights) {
   if (highlights.length === 0) {
@@ -45,24 +43,29 @@ export function updateHighlight(container, updateData) {
 export function removeHighlight(container, uuid) {
   const element = container.querySelector(`[data-id="${uuid}"]`);
   if (element) {
-    element.style.opacity = "0";
-    element.style.transform = "translateX(-100%)";
+    element.remove();
+  }
 
-    setTimeout(() => {
-      element.remove();
-
-      const remaining = container.querySelectorAll(".note");
-      if (remaining.length === 0) {
-        showEmptyState(container);
-      }
-    }, 300);
+  const remaining = container.querySelectorAll(".note");
+  if (remaining.length === 0) {
+    showEmptyState(container);
   }
 }
 
 export function showEmptyState(container) {
-  container.innerHTML = emptyStateHTML();
+  container.innerHTML = `
+    <div class="no-highlights">
+      <p>No highlights saved for this page yet.</p>
+      <p>Drag text to start highlighting!</p>
+    </div>
+  `;
 }
 
 export function showError(container, message) {
-  container.innerHTML = errorStateHTML(message);
+  container.innerHTML = `
+    <div class="error-message">
+      <p>${message}</p>
+      <p>Please try refreshing the page.</p>
+    </div>
+  `;
 }
