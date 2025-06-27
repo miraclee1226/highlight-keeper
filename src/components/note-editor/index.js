@@ -1,4 +1,4 @@
-import { updateHighlight } from "../../api/highlight.js";
+import { updateHighlight } from "../../bridge/highlight-bridge.js";
 import { Component } from "../base-component.js";
 
 export class NoteEditor extends Component {
@@ -120,7 +120,7 @@ export class NoteEditor extends Component {
     window.addEventListener("scroll", this.scrollHandler);
   }
 
-  saveNote(note) {
+  async saveNote(note) {
     if (!this.props.highlightElement) return;
 
     const highlightId = this.props.highlightElement.dataset.id;
@@ -135,16 +135,11 @@ export class NoteEditor extends Component {
       }
     });
 
-    updateHighlight({
-      payload: {
-        highlightId,
-        updates: { note },
-      },
-      onSuccess: () => {},
-      onError: (error) => {
-        console.error(error);
-      },
-    });
+    try {
+      await updateHighlight(highlightId, { note });
+    } catch (error) {
+      console.error("Failed to save note:", error);
+    }
   }
 
   show(highlightElement) {
