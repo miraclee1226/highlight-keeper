@@ -31,9 +31,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 chrome.commands.onCommand.addListener((command) => {
   if (command === "execute_highlight") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, {
-        action: "highlight_shortucut",
-      });
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "highlight_shortcut",
+        });
+      }
     });
   }
 });
