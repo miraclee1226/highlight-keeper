@@ -1,11 +1,19 @@
 import { updateHighlight } from "../../bridge/highlight-bridge.js";
 import { Component } from "../base-component.js";
+import { PopupMixin } from "../mixin/popup-mixin.js";
 
 export class NoteEditor extends Component {
   setup() {
-    this.scrollHandler = null;
-    this.outsideClickHandler = null;
-    this.editorElement = null;
+    this.initPopup();
+
+    Object.defineProperty(this, "editorElement", {
+      get() {
+        return this.popupElement;
+      },
+      set(value) {
+        this.popupElement = value;
+      },
+    });
 
     this.state = {
       isVisible: false,
@@ -26,16 +34,7 @@ export class NoteEditor extends Component {
   }
 
   willUpdate() {
-    const existingEditor =
-      this.editorElement || document.querySelector(".note-editor");
-
-    if (
-      existingEditor &&
-      !existingEditor.classList.contains("note-editor--hiding")
-    ) {
-      existingEditor.remove();
-      this.editorElement = null;
-    }
+    this.removeExistingPopup(".note-editor", "note-editor--hiding");
   }
 
   render() {
@@ -43,21 +42,19 @@ export class NoteEditor extends Component {
 
     this.$target.insertAdjacentHTML("beforeend", this.template());
     this.editorElement = this.$target.querySelector(".note-editor");
-
     this.mounted();
   }
 
   didUpdate() {
-    requestAnimationFrame(() => {
-      this.editorElement.classList.add("note-editor--entering");
-    });
+    this.addEnterAnimation("note-editor--entering");
   }
 
   mounted() {
     if (!this.state.isVisible || !this.editorElement) return;
 
     this.setupTextarea();
-    this.setupEventHandlers();
+    // 하이라이트 엘리먼트는 클릭해도 에디터가 닫히지 않도록 제외
+    this.setupPopupEventHandlers([this.props.highlightElement]);
   }
 
   setupTextarea() {
@@ -78,25 +75,6 @@ export class NoteEditor extends Component {
 
     textarea.addEventListener("blur", saveAndClose);
     textarea.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  setupEventHandlers() {
-    this.outsideClickHandler = (e) => {
-      if (!this.state.isVisible) return;
-      if (this.props.highlightElement?.contains(e.target)) return;
-      if (this.editorElement?.contains(e.target)) return;
-
-      this.hide();
-    };
-
-    this.scrollHandler = () => {
-      if (!this.state.isVisible) return;
-
-      this.hide();
-    };
-
-    document.addEventListener("click", this.outsideClickHandler);
-    window.addEventListener("scroll", this.scrollHandler);
   }
 
   async saveNote(note) {
@@ -122,7 +100,7 @@ export class NoteEditor extends Component {
   }
 
   show(highlightElement) {
-    this.cleanup();
+    this.cleanupPopup();
 
     const noteText = highlightElement.dataset.note || "";
     const position = this.calculatePosition(highlightElement);
@@ -135,18 +113,7 @@ export class NoteEditor extends Component {
   }
 
   hide() {
-    if (!this.state.isVisible) return;
-    if (!this.editorElement) return;
-
-    this.state.isVisible = false;
-    this.editorElement.classList.add("note-editor--hiding");
-
-    setTimeout(() => {
-      if (this.editorElement?.parentNode) return;
-
-      this.editorElement.remove();
-      this.editorElement = null;
-    }, 200);
+    this.hideWithAnimation("note-editor--hiding");
   }
 
   calculatePosition(highlightElement) {
@@ -159,14 +126,8 @@ export class NoteEditor extends Component {
   }
 
   cleanup() {
-    if (this.outsideClickHandler) {
-      document.removeEventListener("click", this.outsideClickHandler);
-      this.outsideClickHandler = null;
-    }
-
-    if (this.scrollHandler) {
-      window.removeEventListener("scroll", this.scrollHandler);
-      this.scrollHandler = null;
-    }
+    this.cleanupPopup();
   }
 }
+
+Object.assign(NoteEditor.prototype, PopupMixin);

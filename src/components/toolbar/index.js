@@ -1,12 +1,20 @@
 import { Component } from "../base-component.js";
+import { PopupMixin } from "../mixin/popup-mixin.js";
 import { Button } from "./Button.js";
 import { ColorPalette } from "./ColorPalette.js";
 
 export class Toolbar extends Component {
   setup() {
-    this.outsideClickHandler = null;
-    this.scrollHandler = null;
-    this.toolbarElement = null;
+    this.initPopup();
+
+    Object.defineProperty(this, "toolbarElement", {
+      get() {
+        return this.popupElement;
+      },
+      set(value) {
+        this.popupElement = value;
+      },
+    });
 
     this.state = {
       isVisible: false,
@@ -35,16 +43,7 @@ export class Toolbar extends Component {
   }
 
   willUpdate() {
-    const existingToolbar =
-      this.toolbarElement || document.querySelector(".toolbar");
-
-    if (
-      existingToolbar &&
-      !existingToolbar.classList.contains("toolbar--hiding")
-    ) {
-      existingToolbar.remove();
-      this.toolbarElement = null;
-    }
+    this.removeExistingPopup(".toolbar", "toolbar--hiding");
   }
 
   render() {
@@ -52,21 +51,18 @@ export class Toolbar extends Component {
 
     this.$target.insertAdjacentHTML("beforeend", this.template());
     this.toolbarElement = this.$target.querySelector(".toolbar");
-
     this.mounted();
   }
 
   didUpdate() {
-    requestAnimationFrame(() => {
-      this.toolbarElement.classList.add("toolbar--entering");
-    });
+    this.addEnterAnimation("toolbar--entering");
   }
 
   mounted() {
     if (!this.state.isVisible || !this.toolbarElement) return;
 
     this.setupComponents();
-    this.setupEventHandlers();
+    this.setupPopupEventHandlers();
   }
 
   setupComponents() {
@@ -111,25 +107,8 @@ export class Toolbar extends Component {
     }
   }
 
-  setupEventHandlers() {
-    this.outsideClickHandler = (e) => {
-      if (!this.state.isVisible) return;
-      if (this.toolbarElement?.contains(e.target)) return;
-
-      this.hide();
-    };
-
-    this.scrollHandler = () => {
-      if (!this.state.isVisible) return;
-      this.hide();
-    };
-
-    document.addEventListener("mousedown", this.outsideClickHandler);
-    window.addEventListener("scroll", this.scrollHandler);
-  }
-
   show(type = "selection", position = { top: 0, left: 0 }) {
-    this.cleanup();
+    this.cleanupPopup();
     this.setState({
       isVisible: true,
       type,
@@ -138,18 +117,7 @@ export class Toolbar extends Component {
   }
 
   hide() {
-    if (!this.state.isVisible) return;
-    if (!this.toolbarElement) return;
-
-    this.state.isVisible = false;
-    this.toolbarElement.classList.add("toolbar--hiding");
-
-    setTimeout(() => {
-      if (this.toolbarElement?.parentNode) {
-        this.toolbarElement.remove();
-        this.toolbarElement = null;
-      }
-    }, 200);
+    this.hideWithAnimation("toolbar--hiding");
   }
 
   calculatePosition(position) {
@@ -169,14 +137,8 @@ export class Toolbar extends Component {
   }
 
   cleanup() {
-    if (this.outsideClickHandler) {
-      document.removeEventListener("mousedown", this.outsideClickHandler);
-      this.outsideClickHandler = null;
-    }
-
-    if (this.scrollHandler) {
-      window.removeEventListener("scroll", this.scrollHandler);
-      this.scrollHandler = null;
-    }
+    this.cleanupPopup();
   }
 }
+
+Object.assign(Toolbar.prototype, PopupMixin);
