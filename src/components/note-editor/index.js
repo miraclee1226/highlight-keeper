@@ -2,25 +2,6 @@ import { updateHighlight } from "../../bridge/highlight-bridge.js";
 import { Component } from "../base-component.js";
 
 export class NoteEditor extends Component {
-  static instance = null;
-
-  constructor($target, props) {
-    if (NoteEditor.instance) {
-      NoteEditor.instance.cleanup();
-      NoteEditor.instance.updateInstance($target, props);
-      return NoteEditor.instance;
-    }
-
-    super($target, props);
-    NoteEditor.instance = this;
-  }
-
-  updateInstance($target, props) {
-    this.$target = $target;
-    this.props = props;
-    this.setup();
-  }
-
   setup() {
     this.scrollHandler = null;
     this.outsideClickHandler = null;

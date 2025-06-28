@@ -1,5 +1,5 @@
-import { showToolbar, hideToolbar } from "./toolbar.js";
-import { showNoteEditor as showEditor, hideNoteEditor } from "./note-editor.js";
+import { showToolbar } from "./toolbar.js";
+import { showNoteEditor as showEditor } from "./note-editor.js";
 
 export function showSelectionToolbar(position, callbacks) {
   showToolbar(position, {
@@ -21,9 +21,4 @@ export function showHighlightToolbar(position, callbacks) {
 
 export function showNoteEditor(highlightElement) {
   showEditor(highlightElement);
-}
-
-export function hideAllUI() {
-  hideToolbar();
-  hideNoteEditor();
 }
