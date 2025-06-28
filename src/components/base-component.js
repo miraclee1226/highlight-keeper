@@ -13,8 +13,6 @@ export class Component {
 
   setup() {}
 
-  mounted() {}
-
   template() {
     return "";
   }
@@ -24,12 +22,24 @@ export class Component {
     this.mounted();
   }
 
+  mounted() {}
+
   setEvent() {}
 
   setState(newState) {
     this.state = { ...this.state, ...newState };
-    this.render();
+    this.update();
   }
+
+  update() {
+    this.willUpdate();
+    this.render();
+    this.didUpdate();
+  }
+
+  willUpdate() {}
+
+  didUpdate() {}
 
   addEvent(eventType, selector, callback) {
     this.$target.addEventListener(eventType, (event) => {

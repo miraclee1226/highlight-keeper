@@ -36,7 +36,7 @@ export class Toolbar extends Component {
     `;
   }
 
-  render() {
+  willUpdate() {
     const existingToolbar =
       this.toolbarElement || document.querySelector(".toolbar");
 
@@ -47,19 +47,22 @@ export class Toolbar extends Component {
       existingToolbar.remove();
       this.toolbarElement = null;
     }
+  }
 
-    if (this.state.isVisible) {
-      this.$target.insertAdjacentHTML("beforeend", this.template());
-      this.toolbarElement = this.$target.querySelector(".toolbar");
+  render() {
+    if (!this.state.isVisible) return;
 
+    this.$target.insertAdjacentHTML("beforeend", this.template());
+    this.toolbarElement = this.$target.querySelector(".toolbar");
+
+    this.mounted();
+  }
+
+  didUpdate() {
+    if (this.toolbarElement) {
       requestAnimationFrame(() => {
-        if (this.toolbarElement) {
-          this.toolbarElement.classList.add("toolbar--entering");
-          this.adjustPosition();
-        }
+        this.toolbarElement.classList.add("toolbar--entering");
       });
-
-      this.mounted();
     }
   }
 
@@ -177,30 +180,6 @@ export class Toolbar extends Component {
     }
 
     return { top, left };
-  }
-
-  adjustPosition() {
-    if (!this.state.isVisible || !this.toolbarElement) return;
-
-    const toolbarRect = this.toolbarElement.getBoundingClientRect();
-    let newLeft = this.state.position.left;
-    let newTop = this.state.position.top;
-
-    if (toolbarRect.right > window.innerWidth) {
-      newLeft = window.scrollX + window.innerWidth - toolbarRect.width - 10;
-    }
-
-    if (toolbarRect.bottom > window.innerHeight) {
-      newTop = window.scrollY + window.innerHeight - toolbarRect.height - 10;
-    }
-
-    if (
-      newLeft !== this.state.position.left ||
-      newTop !== this.state.position.top
-    ) {
-      this.toolbarElement.style.left = newLeft + "px";
-      this.toolbarElement.style.top = newTop + "px";
-    }
   }
 
   cleanup() {

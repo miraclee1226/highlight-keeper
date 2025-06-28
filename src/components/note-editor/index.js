@@ -27,7 +27,7 @@ export class NoteEditor extends Component {
     `;
   }
 
-  render() {
+  willUpdate() {
     const existingEditor =
       this.editorElement || document.querySelector(".note-editor");
 
@@ -38,19 +38,22 @@ export class NoteEditor extends Component {
       existingEditor.remove();
       this.editorElement = null;
     }
+  }
 
-    if (this.state.isVisible) {
-      this.$target.insertAdjacentHTML("beforeend", this.template());
-      this.editorElement = this.$target.querySelector(".note-editor");
+  render() {
+    if (!this.state.isVisible) return;
 
+    this.$target.insertAdjacentHTML("beforeend", this.template());
+    this.editorElement = this.$target.querySelector(".note-editor");
+
+    this.mounted();
+  }
+
+  didUpdate() {
+    if (this.editorElement) {
       requestAnimationFrame(() => {
-        if (this.editorElement) {
-          this.editorElement.classList.add("note-editor--entering");
-          this.adjustPosition();
-        }
+        this.editorElement.classList.add("note-editor--entering");
       });
-
-      this.mounted();
     }
   }
 
@@ -163,30 +166,6 @@ export class NoteEditor extends Component {
       top: window.scrollY + rect.bottom + 5,
       left: window.scrollX + rect.left,
     };
-  }
-
-  adjustPosition() {
-    if (!this.state.isVisible || !this.editorElement) return;
-
-    const editorRect = this.editorElement.getBoundingClientRect();
-    let newLeft = this.state.position.left;
-    let newTop = this.state.position.top;
-
-    if (editorRect.right > window.innerWidth) {
-      newLeft = window.scrollX + window.innerWidth - editorRect.width - 10;
-    }
-
-    if (editorRect.bottom > window.innerHeight) {
-      newTop = window.scrollY + window.innerHeight - editorRect.height - 10;
-    }
-
-    if (
-      newLeft !== this.state.position.left ||
-      newTop !== this.state.position.top
-    ) {
-      this.editorElement.style.left = newLeft + "px";
-      this.editorElement.style.top = newTop + "px";
-    }
   }
 
   cleanup() {
