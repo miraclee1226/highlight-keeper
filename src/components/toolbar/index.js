@@ -24,12 +24,12 @@ export class Toolbar extends Component {
            style="top: ${this.state.position.top}px; left: ${
       this.state.position.left
     }px;">
-        <div data-component="color-palette"></div>
+        <div class="color-palette-container"></div>
         <div class="toolbar-divider"></div>
-        <div data-component="note-button"></div>
+        <button class="note-button"></button>
         ${
           this.state.type === "highlight"
-            ? '<div class="toolbar-divider"></div><div data-component="delete-button"></div>'
+            ? '<div class="toolbar-divider"></div><button class="delete-button"></button>'
             : ""
         }
       </div>
@@ -75,14 +75,10 @@ export class Toolbar extends Component {
 
   setupComponents() {
     const colorPalette = this.toolbarElement.querySelector(
-      '[data-component="color-palette"]'
+      ".color-palette-container"
     );
-    const noteButton = this.toolbarElement.querySelector(
-      '[data-component="note-button"]'
-    );
-    const deleteButton = this.toolbarElement.querySelector(
-      '[data-component="delete-button"]'
-    );
+    const noteButton = this.toolbarElement.querySelector(".note-button");
+    const deleteButton = this.toolbarElement.querySelector(".delete-button");
 
     new ColorPalette(colorPalette, {
       currentColor: this.state.currentColor,
@@ -97,7 +93,6 @@ export class Toolbar extends Component {
     new Button(noteButton, {
       icon: chrome.runtime.getURL("/public/icons/note.svg"),
       text: "Note",
-      className: "note-button",
       onClick: () => {
         if (this.props.onNoteClick) {
           this.props.onNoteClick();
@@ -110,7 +105,6 @@ export class Toolbar extends Component {
       new Button(deleteButton, {
         icon: chrome.runtime.getURL("/public/icons/delete.svg"),
         text: "Delete",
-        className: "delete-button",
         onClick: () => {
           if (this.props.onDeleteClick) {
             this.props.onDeleteClick();
