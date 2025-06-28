@@ -17,8 +17,6 @@ export class Toolbar extends Component {
   }
 
   template() {
-    if (!this.state.isVisible) return "";
-
     return `
       <div class="toolbar"
            style="top: ${this.state.position.top}px; left: ${
@@ -59,11 +57,9 @@ export class Toolbar extends Component {
   }
 
   didUpdate() {
-    if (this.toolbarElement) {
-      requestAnimationFrame(() => {
-        this.toolbarElement.classList.add("toolbar--entering");
-      });
-    }
+    requestAnimationFrame(() => {
+      this.toolbarElement.classList.add("toolbar--entering");
+    });
   }
 
   mounted() {
@@ -124,9 +120,8 @@ export class Toolbar extends Component {
     };
 
     this.scrollHandler = () => {
-      if (this.state.isVisible) {
-        this.hide();
-      }
+      if (!this.state.isVisible) return;
+      this.hide();
     };
 
     document.addEventListener("mousedown", this.outsideClickHandler);
@@ -135,7 +130,6 @@ export class Toolbar extends Component {
 
   show(type = "selection", position = { top: 0, left: 0 }) {
     this.cleanup();
-
     this.setState({
       isVisible: true,
       type,
@@ -145,19 +139,17 @@ export class Toolbar extends Component {
 
   hide() {
     if (!this.state.isVisible) return;
+    if (!this.toolbarElement) return;
 
     this.state.isVisible = false;
+    this.toolbarElement.classList.add("toolbar--hiding");
 
-    if (this.toolbarElement) {
-      this.toolbarElement.classList.add("toolbar--hiding");
-
-      setTimeout(() => {
-        if (this.toolbarElement?.parentNode) {
-          this.toolbarElement.remove();
-          this.toolbarElement = null;
-        }
-      }, 200);
-    }
+    setTimeout(() => {
+      if (this.toolbarElement?.parentNode) {
+        this.toolbarElement.remove();
+        this.toolbarElement = null;
+      }
+    }, 200);
   }
 
   calculatePosition(position) {

@@ -15,8 +15,6 @@ export class NoteEditor extends Component {
   }
 
   template() {
-    if (!this.state.isVisible) return "";
-
     return `
       <div class="note-editor" 
            style="top: ${this.state.position.top}px; left: ${this.state.position.left}px;">
@@ -50,11 +48,9 @@ export class NoteEditor extends Component {
   }
 
   didUpdate() {
-    if (this.editorElement) {
-      requestAnimationFrame(() => {
-        this.editorElement.classList.add("note-editor--entering");
-      });
-    }
+    requestAnimationFrame(() => {
+      this.editorElement.classList.add("note-editor--entering");
+    });
   }
 
   mounted() {
@@ -66,7 +62,6 @@ export class NoteEditor extends Component {
 
   setupTextarea() {
     const textarea = this.editorElement.querySelector(".note-editor__textarea");
-    if (!textarea) return;
 
     textarea.focus();
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
@@ -95,9 +90,9 @@ export class NoteEditor extends Component {
     };
 
     this.scrollHandler = () => {
-      if (this.state.isVisible) {
-        this.hide();
-      }
+      if (!this.state.isVisible) return;
+
+      this.hide();
     };
 
     document.addEventListener("click", this.outsideClickHandler);
@@ -127,41 +122,36 @@ export class NoteEditor extends Component {
   }
 
   show(highlightElement) {
-    if (!highlightElement) return;
-
     this.cleanup();
 
-    const position = this.calculatePosition(highlightElement);
     const noteText = highlightElement.dataset.note || "";
-
-    this.props.highlightElement = highlightElement;
+    const position = this.calculatePosition(highlightElement);
 
     this.setState({
       isVisible: true,
-      noteText: noteText,
-      position: position,
+      noteText,
+      position,
     });
   }
 
   hide() {
     if (!this.state.isVisible) return;
+    if (!this.editorElement) return;
 
     this.state.isVisible = false;
+    this.editorElement.classList.add("note-editor--hiding");
 
-    if (this.editorElement) {
-      this.editorElement.classList.add("note-editor--hiding");
+    setTimeout(() => {
+      if (this.editorElement?.parentNode) return;
 
-      setTimeout(() => {
-        if (this.editorElement?.parentNode) {
-          this.editorElement.remove();
-          this.editorElement = null;
-        }
-      }, 200);
-    }
+      this.editorElement.remove();
+      this.editorElement = null;
+    }, 200);
   }
 
   calculatePosition(highlightElement) {
     const rect = highlightElement.getBoundingClientRect();
+
     return {
       top: window.scrollY + rect.bottom + 5,
       left: window.scrollX + rect.left,
