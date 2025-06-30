@@ -72,50 +72,27 @@ export function getHighlightsByHref(href) {
   }
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(
-      [STORE_NAMES.HREF_INDEX, STORE_NAMES.HIGHLIGHTS],
-      "readonly"
-    );
-    const hrefIndexStore = transaction.objectStore(STORE_NAMES.HREF_INDEX);
-    const hrefRequest = hrefIndexStore.get(href);
+    const transaction = db.transaction([STORE_NAMES.HIGHLIGHTS], "readonly");
+    const objectStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
+    const hrefIndex = objectStore.index("href");
 
-    hrefRequest.onsuccess = function () {
-      const hrefIndex = hrefRequest.result;
+    const request = hrefIndex.openCursor(IDBKeyRange.only(href));
+    const highlights = [];
 
-      if (!hrefIndex) {
-        console.log(`No highlights found for href: ${href}`);
-        resolve([]);
-        return;
+    request.onsuccess = function (event) {
+      const cursor = event.target.result;
+      console.log(cursor);
+
+      if (cursor) {
+        highlights.push(cursor.value);
+        cursor.continue();
+      } else {
+        highlights.sort((a, b) => a.createdAt - b.createdAt);
+        resolve(highlights);
       }
-
-      const highlightsStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
-      const promises = hrefIndex.highlightUuids.map((uuid) => {
-        return new Promise((resolve) => {
-          const highlightRequest = highlightsStore.get(uuid);
-
-          highlightRequest.onsuccess = () => {
-            resolve(highlightRequest.result);
-          };
-
-          highlightRequest.onerror = () => {
-            resolve(null);
-          };
-        });
-      });
-
-      Promise.all(promises)
-        .then((results) => {
-          const highlights = results.filter((h) => h !== null);
-          highlights.sort((a, b) => a.createdAt - b.createdAt);
-          resolve(highlights);
-        })
-        .catch((error) => {
-          console.error("Error in Promise.all:", error);
-          reject(new Error("Failed to retrieve highlights: " + error.message));
-        });
     };
 
-    hrefRequest.onerror = function () {
+    request.onerror = function () {
       console.error("Error retrieving highlights by href: ", hrefRequest.error);
       reject(new Error("Failed to retrieve highlights: " + hrefRequest.error));
     };
@@ -138,16 +115,12 @@ export function createHighlight(highlight) {
   }
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(
-      [STORE_NAMES.HIGHLIGHTS, STORE_NAMES.HREF_INDEX],
-      "readwrite"
-    );
+    const transaction = db.transaction([STORE_NAMES.HIGHLIGHTS], "readwrite");
     const objectStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
     const request = objectStore.add(highlight);
 
     request.onsuccess = function () {
       console.log("Highlight created successfully: ", highlight.uuid);
-      updateHrefIndex(transaction, highlight.href, highlight.uuid);
     };
 
     request.onerror = function () {
@@ -242,7 +215,7 @@ export function deleteHighlight(uuid) {
 
       return new Promise((resolve, reject) => {
         const transaction = db.transaction(
-          [STORE_NAMES.HIGHLIGHTS, STORE_NAMES.HREF_INDEX],
+          [STORE_NAMES.HIGHLIGHTS],
           "readwrite"
         );
         const highlightStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
@@ -250,7 +223,6 @@ export function deleteHighlight(uuid) {
 
         deleteRequest.onsuccess = function () {
           console.log(`Highlight ${uuid} deleted successfully`);
-          updateHrefIndexForDeletion(transaction, highlight.href, uuid);
         };
 
         deleteRequest.onerror = function () {
@@ -274,85 +246,4 @@ export function deleteHighlight(uuid) {
       console.error("Error in deleteHighlight: ", error);
       throw new Error("Failed to delete highlight: " + error.message);
     });
-}
-
-function updateHrefIndex(transaction, href, uuid) {
-  const objectStore = transaction.objectStore(STORE_NAMES.HREF_INDEX);
-  const request = objectStore.get(href);
-
-  request.onsuccess = function () {
-    let hrefIndex = request.result;
-
-    if (!hrefIndex) {
-      hrefIndex = {
-        href,
-        highlightUuids: [uuid],
-      };
-    } else {
-      if (!hrefIndex.highlightUuids.includes(uuid)) {
-        hrefIndex.highlightUuids.push(uuid);
-      }
-    }
-
-    const updateRequest = objectStore.put(hrefIndex);
-
-    updateRequest.onsuccess = function () {
-      console.log(`Updated URL index for ${href} with UUID ${uuid}`);
-    };
-
-    updateRequest.onerror = function () {
-      console.error("Error updating URL index: ", updateRequest.error);
-    };
-  };
-
-  request.onerror = function () {
-    console.error("Error retrieving URL index: ", request.error);
-  };
-}
-
-function updateHrefIndexForDeletion(transaction, href, uuid) {
-  const hrefIndexStore = transaction.objectStore(STORE_NAMES.HREF_INDEX);
-  const request = hrefIndexStore.get(href);
-
-  request.onsuccess = function () {
-    const hrefIndex = request.result;
-
-    if (!hrefIndex || !hrefIndex.highlightUuids) {
-      console.log(`No href index found for ${href}`);
-      return;
-    }
-
-    const updatedUuids = hrefIndex.highlightUuids.filter((id) => id !== uuid);
-
-    if (updatedUuids.length === 0) {
-      const deleteIndexRequest = hrefIndexStore.delete(href);
-
-      deleteIndexRequest.onsuccess = function () {
-        console.log(`Deleted URL index for ${href} (no more highlights)`);
-      };
-
-      deleteIndexRequest.onerror = function () {
-        console.error("Error deleting URL index: ", deleteIndexRequest.error);
-      };
-    } else {
-      hrefIndex.highlightUuids = updatedUuids;
-
-      const updateRequest = hrefIndexStore.put(hrefIndex);
-
-      updateRequest.onsuccess = function () {
-        console.log(`Updated URL index for ${href}, removed UUID ${uuid}`);
-      };
-
-      updateRequest.onerror = function () {
-        console.error(
-          "Error updating URL index for deletion: ",
-          updateRequest.error
-        );
-      };
-    }
-  };
-
-  request.onerror = function () {
-    console.error("Error retrieving URL index for deletion: ", request.error);
-  };
 }

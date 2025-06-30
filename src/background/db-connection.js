@@ -14,16 +14,23 @@ export function initDB() {
     request.onupgradeneeded = function () {
       db = request.result;
 
-      if (!db.objectStoreNames.contains(STORE_NAMES.HIGHLIGHTS)) {
-        db.createObjectStore(STORE_NAMES.HIGHLIGHTS, {
-          keyPath: "uuid",
-        });
+      if (db.objectStoreNames.contains("hrefIndex")) {
+        db.deleteObjectStore("hrefIndex");
       }
 
-      if (!db.objectStoreNames.contains(STORE_NAMES.HREF_INDEX)) {
-        db.createObjectStore(STORE_NAMES.HREF_INDEX, {
-          keyPath: "href",
+      let highlightsStore;
+      if (!db.objectStoreNames.contains(STORE_NAMES.HIGHLIGHTS)) {
+        highlightsStore = db.createObjectStore(STORE_NAMES.HIGHLIGHTS, {
+          keyPath: "uuid",
         });
+      } else {
+        highlightsStore = request.transaction.objectStore(
+          STORE_NAMES.HIGHLIGHTS
+        );
+      }
+
+      if (!highlightsStore.indexNames.contains("href")) {
+        highlightsStore.createIndex("href", "href", { unique: false });
       }
 
       db.onversionchange = function () {
