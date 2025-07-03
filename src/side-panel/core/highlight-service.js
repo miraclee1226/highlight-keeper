@@ -6,9 +6,11 @@ import {
   showError,
   switchTab,
   renderCurrentPageTab,
+  renderAllPagesTab,
 } from "../ui/highlight-renderer.js";
 import { scrollToHighlight } from "../../bridge/highlight-bridge.js";
 import { setCurrentUrl } from "../state/url-state.js";
+import { getDomainMetadata } from "../../bridge/domain-bridge.js";
 
 export async function initializeCore() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
@@ -27,15 +29,26 @@ export async function handleTabChange(url) {
     const highlights = await loadHighlights(url);
     renderCurrentPageTab(highlights);
   } catch (error) {
-    showError(error.message);
+    const currentPage = document.getElementById("currentPage");
+    showError(currentPage, error.message);
   }
 }
 
 export function handleTabSwitch(tabType) {
   switchTab(tabType);
 
-  // TODO: Implement domain-based highlight grouping
-  if (tabType === "all") {
+  if (tabType === "allPagesTab") {
+    handleAllPagesData();
+  }
+}
+
+async function handleAllPagesData() {
+  try {
+    const domainMeataData = await getDomainMetadata();
+    renderAllPagesTab(domainMeataData);
+  } catch (error) {
+    const allPages = document.getElementById("allPages");
+    showError(allPages, error.message);
   }
 }
 

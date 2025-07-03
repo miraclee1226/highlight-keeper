@@ -111,6 +111,7 @@ span {
   padding: 10px 0;
 }
 
+/* Current Pages */
 .highlight-item__wrapper {
   display: flex;
   flex-direction: column;
@@ -235,4 +236,57 @@ span {
 
 .side-panel::-webkit-scrollbar-thumb:hover {
   background: #999;
+}
+
+/* All Pages */
+.domain-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.domain-item:hover {
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.domain-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.domain-favicon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  margin-right: 12px;
+}
+
+.domain-info {
+  flex: 1;
+}
+
+.domain-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.domain-url {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.highlight-count {
+  background: #2563eb;
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 30px;
+  text-align: center;
 }

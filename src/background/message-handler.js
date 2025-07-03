@@ -5,6 +5,7 @@ import {
   updateHighlight,
   deleteHighlight,
 } from "./highlights.js";
+import { getDomainMetadata } from "./domain-metadata.js";
 
 export function handleMessage(request, sender, sendResponse) {
   switch (request.action) {
@@ -88,6 +89,20 @@ export function handleMessage(request, sender, sendResponse) {
           sendResponse({
             action: "get_all_error",
             error: error.message || "Unknown error during get all operation",
+          });
+        });
+      break;
+
+    case "get_domain_metadata":
+      getDomainMetadata()
+        .then((res) =>
+          sendResponse({ action: "get_domain_metadata_success", data: res })
+        )
+        .catch((error) => {
+          console.error("Get domain metadata failed:", error);
+          sendResponse({
+            action: "get_domain_metadata_error",
+            error: error.message,
           });
         });
       break;

@@ -3,7 +3,7 @@ import {
   updateHighlight as updateHighlightBridge,
   deleteHighlight as deleteHighlightBridge,
 } from "../../../bridge/highlight-bridge.js";
-import { getOriginalDOMInfo } from "../../utils/dom-utils.js";
+import { getOriginalDOMInfo, getPageTitle } from "../../utils/dom-utils.js";
 import { generateId } from "../../utils/id-generator.js";
 import {
   renderHighlight,
@@ -21,7 +21,9 @@ export async function createHighlight(selection, color) {
 
     const highlightData = {
       uuid: highlightId,
-      href: window.location.href,
+      href: location.href,
+      domain: location.hostname,
+      pageTitle: getPageTitle(),
       selection: domInfo,
       color,
       note: "",

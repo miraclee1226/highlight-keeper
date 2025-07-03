@@ -81,7 +81,6 @@ export function getHighlightsByHref(href) {
 
     request.onsuccess = function (event) {
       const cursor = event.target.result;
-      console.log(cursor);
 
       if (cursor) {
         highlights.push(cursor.value);

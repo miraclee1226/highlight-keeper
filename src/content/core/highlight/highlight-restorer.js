@@ -34,7 +34,7 @@ async function waitForDOMReady() {
 }
 
 function attemptRestore(highlights) {
-  const attempts = [0, 500, 1000, 2000, 4000];
+  const attempts = [0, 500, 1000, 2000, 4000, 6000, 8000];
 
   attempts.forEach((delay) => {
     setTimeout(() => {

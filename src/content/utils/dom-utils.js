@@ -129,3 +129,12 @@ function findTextPositionInElement(element, targetOffset) {
 
   return null;
 }
+
+export function getPageTitle() {
+  return (
+    document.title ||
+    document.querySelector("h1")?.textContent?.trim() ||
+    document.querySelector("h2")?.textContent?.trim() ||
+    "Untitled Page"
+  );
+}

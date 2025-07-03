@@ -3,12 +3,15 @@ import {
   updateHighlightNote,
   updateHighlightColor,
 } from "./highlight-element.js";
+import { createDomainElement } from "./domain-element.js";
 
 export function renderCurrentPageTab(highlights) {
   if (!document.querySelector(".tabs")) renderTabHTML();
 
+  const currentPage = document.getElementById("currentPage");
+
   if (highlights.length === 0) {
-    showEmptyState();
+    showEmptyState(currentPage);
     return;
   }
 
@@ -16,24 +19,37 @@ export function renderCurrentPageTab(highlights) {
 
   highlights.forEach((highlight) => {
     const element = createHighlightElement(highlight);
-    const currentPage = document.getElementById("currentPage");
-
     currentPage.appendChild(element);
   });
 }
 
-function renderTabHTML() {
+export function renderTabHTML() {
   const sidePanel = document.querySelector(".side-panel");
 
-  // TODO: Implement domain-based highlight grouping
   sidePanel.innerHTML = `
     <div class="tabs">
       <button class="tab active" id="currenPageTab">Current Page</button>
-      <button class="tab" id="allPageTab">All Pages</button>
+      <button class="tab" id="allPagesTab">All Pages</button>
     </div>
     <div class="tab-content current-page active" id="currentPage"></div>
     <div class="tab-content all-pages" id="allPages"></div>
   `;
+}
+
+export function renderAllPagesTab(domainMetadata) {
+  const allPages = document.getElementById("allPages");
+
+  if (domainMetadata.length === 0) {
+    showEmptyState(allPages);
+    return;
+  }
+
+  allPages.innerHTML = "";
+
+  domainMetadata.forEach((domain) => {
+    const domainElement = createDomainElement(domain);
+    allPages.appendChild(domainElement);
+  });
 }
 
 export function addHighlight(highlightData) {
@@ -71,27 +87,23 @@ export function removeHighlight(uuid) {
 
   const remaining = currentPage.querySelectorAll(".highlight-item__wrapper");
 
-  if (remaining.length === 0) showEmptyState();
+  if (remaining.length === 0) showEmptyState(currentPage);
 }
 
-export function showEmptyState() {
-  const currentPage = document.getElementById("currentPage");
-
-  currentPage.innerHTML = `
+export function showEmptyState(page) {
+  page.innerHTML = `
     <div class="no-highlights">
-      <p>No highlights saved for this page yet.</p>
+      <p>No highlights saved</p>
       <p>Drag text to start highlighting!</p>
     </div>
   `;
 }
 
-export function showError(message) {
-  const currentPage = document.getElementById("currentPage");
-
-  currentPage.innerHTML = `
+export function showError(pages) {
+  pages.innerHTML = `
     <div class="error-message">
-      <p>${message}</p>
-      <p>Please try refreshing the page.</p>
+       <p>Unable to load highlights</p>
+     <p>Please refresh the page or try again later</p>
     </div>
   `;
 }
@@ -113,7 +125,7 @@ export function switchTab(activeTab) {
 
   if (activeTab === "currenPageTab") {
     document.getElementById("currentPage").classList.add("active");
-  } else if (activeTab === "allPageTab") {
+  } else if (activeTab === "allPagesTab") {
     document.getElementById("allPages").classList.add("active");
   }
 }
