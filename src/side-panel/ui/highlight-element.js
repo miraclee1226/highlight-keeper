@@ -2,7 +2,7 @@ import { formatDate, escapeHtml } from "../utils/formatter.js";
 
 export function createHighlightElement(highlight) {
   const element = document.createElement("div");
-  element.className = "note";
+  element.className = "highlight-item__wrapper";
   element.dataset.id = highlight.uuid;
 
   const date = new Date(highlight.createdAt);
@@ -28,11 +28,11 @@ function highlightHTML({
   noteText,
 }) {
   return `
-    <div class="note__header">
-      <span class="note__date">${formattedDate}</span>
-      <div class="note__highlight">
-        <div class="note__dot" style="background-color: ${highlightColor};"></div>
-        <p class="note__text--highlight">
+    <div class="highlight-item">
+      <span class="highlight-item__date">${formattedDate}</span>
+      <div class="highlight-item__content">
+        <div class="highlight-item__dot" style="background-color: ${highlightColor};"></div>
+        <p class="highlight-item__highlight-text">
           ${escapeHtml(highlightText)}
         </p>
       </div>
@@ -43,9 +43,9 @@ function highlightHTML({
 
 function createMemoHTML(noteText) {
   return `
-    <div class="note__memo">
-      <div class="note__marker"></div>
-      <p class="note__text">
+    <div class="highlight-item__note">
+      <div class="highlight-item__note-marker"></div>
+      <p class="highlight-item__note-text">
         ${escapeHtml(noteText)}
       </p>
     </div>
@@ -53,12 +53,14 @@ function createMemoHTML(noteText) {
 }
 
 export function updateHighlightNote(element, noteText) {
-  const existingMemo = element.querySelector(".note__memo");
+  const existingMemo = element.querySelector(".highlight-item__note");
   const hasNote = noteText && noteText.trim();
 
   if (hasNote) {
     if (existingMemo) {
-      const noteTextElement = existingMemo.querySelector(".note__text");
+      const noteTextElement = existingMemo.querySelector(
+        ".highlight-item__note-text"
+      );
       noteTextElement.textContent = noteText;
     } else {
       const memoHTML = createMemoHTML(noteText);
@@ -72,7 +74,7 @@ export function updateHighlightNote(element, noteText) {
 }
 
 export function updateHighlightColor(element, dotColor) {
-  const dot = element.querySelector(".note__dot");
+  const dot = element.querySelector(".highlight-item__dot");
   if (dot) {
     dot.style.backgroundColor = dotColor;
   }
