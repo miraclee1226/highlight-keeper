@@ -23,6 +23,8 @@ export async function createHighlight(selection, color) {
       uuid: highlightId,
       href: location.href,
       domain: location.hostname,
+      siteName: extractSiteName(location.hostname),
+      favicon: `https://www.google.com/s2/favicons?domain=${location.hostname}`,
       pageTitle: getPageTitle(),
       selection: domInfo,
       color,
@@ -39,6 +41,36 @@ export async function createHighlight(selection, color) {
     console.error("Failed to create highlight:", error);
     return null;
   }
+}
+
+function extractSiteName(domain) {
+  const parts = domain.split(".");
+  const excludeParts = [
+    "com",
+    "org",
+    "net",
+    "edu",
+    "gov",
+    "mil",
+    "co",
+    "kr",
+    "jp",
+    "cn",
+    "uk",
+    "de",
+    "fr",
+    "www",
+    "blog",
+    "shop",
+    "store",
+  ];
+
+  const siteName = parts.find((part) => !excludeParts.includes(part));
+  const capitalizedSiteName = siteName
+    ? siteName.charAt(0).toUpperCase() + siteName.slice(1)
+    : "Unknown";
+
+  return capitalizedSiteName;
 }
 
 export async function updateHighlight(highlightId, updates) {

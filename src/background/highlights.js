@@ -34,7 +34,45 @@ export function getAllHighlights() {
   });
 }
 
-export function getHighlightByUuid(uuid) {
+export function getHighlightsByHref(href) {
+  const db = getDB();
+  if (!db) {
+    return Promise.reject(new Error("Database not initialized"));
+  }
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAMES.HIGHLIGHTS], "readonly");
+    const objectStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
+    const hrefIndex = objectStore.index("href");
+
+    const request = hrefIndex.openCursor(IDBKeyRange.only(href));
+    const highlights = [];
+
+    request.onsuccess = function (event) {
+      const cursor = event.target.result;
+
+      if (cursor) {
+        highlights.push(cursor.value);
+        cursor.continue();
+      } else {
+        highlights.sort((a, b) => a.createdAt - b.createdAt);
+        resolve(highlights);
+      }
+    };
+
+    request.onerror = function () {
+      console.error("Error retrieving highlights by href: ", request.error);
+      reject(new Error("Failed to retrieve highlights: " + request.error));
+    };
+
+    transaction.onerror = function (event) {
+      console.error("Get transaction error: ", event.target.error);
+      reject(new Error("Failed to retrieve highlights: " + event.target.error));
+    };
+  });
+}
+
+function getHighlightByUuid(uuid) {
   const db = getDB();
   if (!db) {
     return Promise.reject(new Error("Database not initialized"));
@@ -65,42 +103,48 @@ export function getHighlightByUuid(uuid) {
   });
 }
 
-export function getHighlightsByHref(href) {
-  const db = getDB();
-  if (!db) {
-    return Promise.reject(new Error("Database not initialized"));
-  }
+export async function getDomainDetails() {
+  const highlights = await getAllHighlights();
+  const domainGroups = {};
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAMES.HIGHLIGHTS], "readonly");
-    const objectStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
-    const hrefIndex = objectStore.index("href");
+  highlights.forEach((highlight) => {
+    const domain = highlight.domain;
+    if (!domainGroups[domain]) {
+      domainGroups[domain] = {
+        domain,
+        siteName: highlight.siteName,
+        favicon: highlight.favicon,
+        pageCount: 0,
+        pages: {},
+      };
+    }
 
-    const request = hrefIndex.openCursor(IDBKeyRange.only(href));
-    const highlights = [];
+    const href = highlight.href;
+    if (!domainGroups[domain].pages[href]) {
+      domainGroups[domain].pages[href] = {
+        href,
+        pageTitle: highlight.pageTitle,
+        highlightCount: 0,
+        highlights: [],
+      };
+      domainGroups[domain].pageCount++;
+    }
 
-    request.onsuccess = function (event) {
-      const cursor = event.target.result;
-
-      if (cursor) {
-        highlights.push(cursor.value);
-        cursor.continue();
-      } else {
-        highlights.sort((a, b) => a.createdAt - b.createdAt);
-        resolve(highlights);
-      }
-    };
-
-    request.onerror = function () {
-      console.error("Error retrieving highlights by href: ", hrefRequest.error);
-      reject(new Error("Failed to retrieve highlights: " + hrefRequest.error));
-    };
-
-    transaction.onerror = function (event) {
-      console.error("Get transaction error: ", event.target.error);
-      reject(new Error("Failed to retrieve highlights: " + event.target.error));
-    };
+    domainGroups[domain].pages[href].highlights.push({
+      uuid: highlight.uuid,
+      text: highlight.text,
+      note: highlight.note,
+      color: highlight.color,
+      createdAt: highlight.createdAt,
+      updatedAt: highlight.updatedAt,
+    });
+    domainGroups[domain].pages[href].highlightCount++;
   });
+
+  return Object.values(domainGroups).map((domain) => ({
+    ...domain,
+    pages: Object.values(domain.pages),
+  }));
 }
 
 export function createHighlight(highlight) {

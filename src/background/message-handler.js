@@ -1,11 +1,11 @@
 import {
   getAllHighlights,
   getHighlightsByHref,
+  getDomainDetails,
   createHighlight,
   updateHighlight,
   deleteHighlight,
 } from "./highlights.js";
-import { getDomainMetadata } from "./domain-metadata.js";
 
 export function handleMessage(request, sender, sendResponse) {
   switch (request.action) {
@@ -93,15 +93,15 @@ export function handleMessage(request, sender, sendResponse) {
         });
       break;
 
-    case "get_domain_metadata":
-      getDomainMetadata()
+    case "get_domain_details":
+      getDomainDetails()
         .then((res) =>
-          sendResponse({ action: "get_domain_metadata_success", data: res })
+          sendResponse({ action: "get_domain_details_success", data: res })
         )
         .catch((error) => {
-          console.error("Get domain metadata failed:", error);
+          console.error("Get domain details failed:", error);
           sendResponse({
-            action: "get_domain_metadata_error",
+            action: "get_domain_details_error",
             error: error.message,
           });
         });

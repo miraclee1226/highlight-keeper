@@ -33,6 +33,10 @@ export function initDB() {
         highlightsStore.createIndex("href", "href", { unique: false });
       }
 
+      if (!highlightsStore.indexNames.contains("domain")) {
+        highlightsStore.createIndex("domain", "domain", { unique: false });
+      }
+
       db.onversionchange = function () {
         db.close();
         console.warn("Database is outdated, please reload the extension.");

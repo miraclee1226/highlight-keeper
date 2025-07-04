@@ -1,7 +1,7 @@
 import { sendMessageToBackground } from "./background-bridge.js";
 
-export async function getDomainMetadata() {
+export async function getDomainDetails() {
   return await sendMessageToBackground({
-    action: "get_domain_metadata",
+    action: "get_domain_details",
   });
 }

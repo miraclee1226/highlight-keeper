@@ -6,7 +6,7 @@ import {
 } from "../ui/renderers/highlight-renderer.js";
 import { scrollToHighlight } from "../../bridge/highlight-bridge.js";
 import { setCurrentUrl } from "../state/url-state.js";
-import { getDomainMetadata } from "../../bridge/domain-bridge.js";
+import { getDomainDetails } from "../../bridge/domain-bridge.js";
 import { switchTab } from "../ui/renderers/tab-renderer.js";
 import { renderCurrentPageTab } from "../ui/renderers/current-page-renderer.js";
 import { renderAllPagesTab } from "../ui/renderers/all-pages-renderer.js";
@@ -44,11 +44,11 @@ export function handleTabSwitch(tabType) {
 
 async function handleAllPagesData() {
   try {
-    const domainMeataData = await getDomainMetadata();
+    const domainMeataData = await getDomainDetails();
     renderAllPagesTab(domainMeataData);
   } catch (error) {
     const allPages = document.getElementById("allPages");
-    showError(allPages, error.message);
+    renderErrorState(allPages, error.message);
   }
 }
 
