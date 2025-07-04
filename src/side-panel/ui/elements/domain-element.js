@@ -2,6 +2,10 @@ export function createDomainElement(domain) {
   const { favicon, siteName, domain: domainName, highlightCount } = domain;
   const element = document.createElement("div");
 
+  element.addEventListener("click", () => {
+    handleDomainClick(domain);
+  });
+
   element.className = "domain-item";
   element.innerHTML = `
     <div class="domain-header">

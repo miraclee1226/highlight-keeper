@@ -3,14 +3,14 @@ import {
   addHighlight,
   updateHighlight,
   removeHighlight,
-  showError,
-  switchTab,
-  renderCurrentPageTab,
-  renderAllPagesTab,
-} from "../ui/highlight-renderer.js";
+} from "../ui/renderers/highlight-renderer.js";
 import { scrollToHighlight } from "../../bridge/highlight-bridge.js";
 import { setCurrentUrl } from "../state/url-state.js";
 import { getDomainMetadata } from "../../bridge/domain-bridge.js";
+import { switchTab } from "../ui/renderers/tab-renderer.js";
+import { renderCurrentPageTab } from "../ui/renderers/current-page-renderer.js";
+import { renderAllPagesTab } from "../ui/renderers/all-pages-renderer.js";
+import { renderErrorState } from "../ui/renderers/state-renderer.js";
 
 export async function initializeCore() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
@@ -30,7 +30,7 @@ export async function handleTabChange(url) {
     renderCurrentPageTab(highlights);
   } catch (error) {
     const currentPage = document.getElementById("currentPage");
-    showError(currentPage, error.message);
+    renderErrorState(currentPage, error.message);
   }
 }
 

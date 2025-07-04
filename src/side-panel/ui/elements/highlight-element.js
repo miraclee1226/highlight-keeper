@@ -1,17 +1,16 @@
-import { formatDate, escapeHtml } from "../utils/formatter.js";
+import { formatDate, escapeHtml } from "../../utils/formatter.js";
 
 export function createHighlightElement(highlight) {
   const element = document.createElement("div");
-  element.className = "highlight-item__wrapper";
-  element.dataset.id = highlight.uuid;
-
   const date = new Date(highlight.createdAt);
   const formattedDate = formatDate(date);
   const highlightColor = highlight.color;
   const highlightText = highlight.selection?.text ?? "No text";
   const noteText = highlight.note ?? "";
 
-  element.innerHTML = highlightHTML({
+  element.className = "highlight-item__wrapper";
+  element.dataset.id = highlight.uuid;
+  element.innerHTML = createHighlightHTML({
     formattedDate,
     highlightColor,
     highlightText,
@@ -21,7 +20,7 @@ export function createHighlightElement(highlight) {
   return element;
 }
 
-function highlightHTML({
+function createHighlightHTML({
   formattedDate,
   highlightColor,
   highlightText,
@@ -37,11 +36,11 @@ function highlightHTML({
         </p>
       </div>
     </div>
-    ${noteText.trim() ? createMemoHTML(noteText) : ""}
+    ${noteText.trim() ? createNoteHTML(noteText) : ""}
   `;
 }
 
-function createMemoHTML(noteText) {
+function createNoteHTML(noteText) {
   return `
     <div class="highlight-item__note">
       <div class="highlight-item__note-marker"></div>
@@ -63,7 +62,7 @@ export function updateHighlightNote(element, noteText) {
       );
       noteTextElement.textContent = noteText;
     } else {
-      const memoHTML = createMemoHTML(noteText);
+      const memoHTML = createNoteHTML(noteText);
       element.insertAdjacentHTML("beforeend", memoHTML);
     }
   } else {
