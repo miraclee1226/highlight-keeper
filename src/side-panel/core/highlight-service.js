@@ -11,6 +11,7 @@ import { switchTab } from "../ui/renderers/tab-renderer.js";
 import { renderCurrentPageTab } from "../ui/renderers/current-page-renderer.js";
 import { renderAllPagesTab } from "../ui/renderers/all-pages-renderer.js";
 import { renderErrorState } from "../ui/renderers/state-renderer.js";
+import { openDomainDetailModal } from "../ui/renderers/domain-detail-modal-renderer.js";
 
 export async function initializeCore() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
@@ -44,8 +45,8 @@ export function handleTabSwitch(tabType) {
 
 async function handleAllPagesData() {
   try {
-    const domainMeataData = await getDomainDetails();
-    renderAllPagesTab(domainMeataData);
+    const domainDetails = await getDomainDetails();
+    renderAllPagesTab(domainDetails, openDomainDetailModal);
   } catch (error) {
     const allPages = document.getElementById("allPages");
     renderErrorState(allPages, error.message);

@@ -132,7 +132,7 @@ export async function getDomainDetails() {
 
     domainGroups[domain].pages[href].highlights.push({
       uuid: highlight.uuid,
-      text: highlight.text,
+      text: highlight.selection.text,
       note: highlight.note,
       color: highlight.color,
       createdAt: highlight.createdAt,
