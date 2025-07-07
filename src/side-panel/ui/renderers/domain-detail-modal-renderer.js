@@ -27,7 +27,7 @@ function createModalOverlay() {
   return overlay;
 }
 
-export function closeDomainDetailModal() {
+function closeDomainDetailModal() {
   if (currentModal) {
     currentModal.classList.remove("active");
   }

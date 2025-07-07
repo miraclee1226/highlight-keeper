@@ -48,7 +48,7 @@ function createPageGroupHTML(page) {
           .join("")}
         ${
           hasMore
-            ? `<button class="page-group__view-all-btn" data-action="view-all" data-href="${href}">View All Highlights</button>`
+            ? `<button class="page-group__view-all-btn" data-action="view-all" data-href="${href}" data-page-title="${pageTitle}">View All Highlights</button>`
             : ""
         }
       </div>

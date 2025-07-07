@@ -1,4 +1,3 @@
-import { loadHighlights } from "./highlight-loader.js";
 import {
   addHighlight,
   updateHighlight,
@@ -12,6 +11,8 @@ import { renderCurrentPageTab } from "../ui/renderers/current-page-renderer.js";
 import { renderAllPagesTab } from "../ui/renderers/all-pages-renderer.js";
 import { renderErrorState } from "../ui/renderers/state-renderer.js";
 import { openDomainDetailModal } from "../ui/renderers/domain-detail-modal-renderer.js";
+import { openPageHighlightsModal } from "../ui/renderers/page-highlights-modal-renderer.js";
+import { loadHighlights } from "./highlight-loader.js";
 
 export async function initializeCore() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
@@ -50,6 +51,15 @@ async function handleAllPagesData() {
   } catch (error) {
     const allPages = document.getElementById("allPages");
     renderErrorState(allPages, error.message);
+  }
+}
+
+export async function handleViewAllHighlights(pageData) {
+  try {
+    const highlights = await loadHighlights(pageData.href);
+    await openPageHighlightsModal(pageData, highlights);
+  } catch (error) {
+    console.error("Failed to load page highlights:", error);
   }
 }
 
