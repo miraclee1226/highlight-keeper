@@ -3,8 +3,11 @@ export function renderTab() {
 
   sidePanel.innerHTML = `
     <div class="tabs">
-      <button class="tabs__item tabs__item--active" id="currenPageTab">Current Page</button>
-      <button class="tabs__item" id="allPagesTab">All Pages</button>
+      <div class="tabs__left">
+        <button class="tabs__item tabs__item--active" id="currenPageTab">Current Page</button>
+        <button class="tabs__item" id="allPagesTab">All Pages</button>
+      </div>
+      <button class="tabs__search-icon" id="searchIcon">🔍</button>
     </div>
     <div class="tab-content tab-content--current-page tab-content--active" id="currentPage"></div>
     <div class="tab-content tab-content--all-pages" id="allPages"></div>

@@ -3,6 +3,7 @@ import {
   handleTabSwitch,
   handleViewAllHighlights,
 } from "../core/highlight-service.js";
+import { openSearchModal } from "../ui/renderers/search-modal-renderer.js";
 
 export function setupHighlightEvents() {
   const sidePanel = document.querySelector(".side-panel");
@@ -21,9 +22,6 @@ export function setupHighlightEvents() {
     const viewAllButton = event.target.closest(".page-group__view-all-btn");
     if (!viewAllButton) return;
 
-    event.preventDefault();
-    event.stopPropagation();
-
     const href = viewAllButton.dataset.href;
     const pageTitle = viewAllButton.dataset.pageTitle;
 
@@ -31,6 +29,12 @@ export function setupHighlightEvents() {
       await handleViewAllHighlights({ href, pageTitle });
     } else {
       console.error("Missing href or pageTitle data");
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (event.target.closest("#searchIcon")) {
+      openSearchModal();
     }
   });
 }
