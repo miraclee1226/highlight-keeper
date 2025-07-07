@@ -8,7 +8,7 @@ export function createHighlightElement(highlight) {
   const highlightText = highlight.selection?.text ?? "No text";
   const noteText = highlight.note ?? "";
 
-  element.className = "highlight-item__wrapper";
+  element.className = "highlight-item";
   element.dataset.id = highlight.uuid;
   element.innerHTML = createHighlightHTML({
     formattedDate,
@@ -27,11 +27,11 @@ function createHighlightHTML({
   noteText,
 }) {
   return `
-    <div class="highlight-item">
+    <div class="highlight-item__wrapper">
       <span class="highlight-item__date">${formattedDate}</span>
       <div class="highlight-item__content">
         <div class="highlight-item__dot" style="background-color: ${highlightColor};"></div>
-        <p class="highlight-item__highlight-text">
+        <p class="highlight-item__text">
           ${escapeHtml(highlightText)}
         </p>
       </div>

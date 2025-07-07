@@ -7,7 +7,7 @@ export function setupHighlightEvents() {
   const sidePanel = document.querySelector(".side-panel");
 
   sidePanel.addEventListener("click", async (event) => {
-    const highlightItem = event.target.closest(".highlight-item__wrapper");
+    const highlightItem = event.target.closest(".highlight-item");
     if (!highlightItem) return;
 
     const uuid = highlightItem.dataset.id;
@@ -19,7 +19,7 @@ export function setupHighlightEvents() {
 
 export function setupSidePanelTabEvents() {
   document.addEventListener("click", (event) => {
-    if (event.target.classList.contains("tab")) {
+    if (event.target.classList.contains("tabs__item")) {
       const tabType = event.target.id;
 
       handleTabSwitch(tabType);

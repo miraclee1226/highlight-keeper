@@ -4,12 +4,12 @@ export function createDomainElement(domain) {
 
   element.className = "domain-item";
   element.innerHTML = `
-    <img src="${favicon}" class="domain-favicon" alt="${siteName}">
-    <div class="domain-info">
-      <div class="domain-name">${siteName}</div>
-      <div class="domain-url">${domainName}</div>
+    <img src="${favicon}" class="domain-item__favicon" alt="${siteName}">
+    <div class="domain-item__info">
+      <div class="domain-item__name">${siteName}</div>
+      <div class="domain-item__url">${domainName}</div>
     </div>
-    <div class="highlight-count">${pageCount}</div>
+    <div class="domain-item__count">${pageCount}</div>
   `;
 
   return element;

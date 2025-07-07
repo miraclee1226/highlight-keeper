@@ -1,4 +1,4 @@
-import { createDomainDetailModal } from "./../elements/domain-detail-modal.js";
+import { createDomainDetailModal } from "../elements/domain-detail-modal.js";
 
 let currentModal = null;
 let currentOverlay = null;
@@ -41,14 +41,15 @@ export function closeDomainDetailModal() {
   }, 300);
 }
 
-function handleCloseButton(currentModal) {
-  const closeBtn = currentModal.querySelector(".close-btn");
+function handleCloseButton(modal) {
+  const closeBtn = modal.querySelector(".domain-modal__close-btn");
 
-  closeBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-
-    closeDomainDetailModal();
-  });
+  if (closeBtn) {
+    closeBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeDomainDetailModal();
+    });
+  }
 }
 
 function cleanupModal() {

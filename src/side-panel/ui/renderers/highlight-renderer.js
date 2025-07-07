@@ -38,7 +38,7 @@ export function removeHighlight(uuid) {
 
   if (element) element.remove();
 
-  const remaining = currentPage.querySelectorAll(".highlight-item__wrapper");
+  const remaining = currentPage.querySelectorAll(".highlight-item");
 
   if (remaining.length === 0) renderEmptyState(currentPage);
 }
