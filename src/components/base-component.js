@@ -18,7 +18,7 @@ export class Component {
   }
 
   render() {
-    this.$target.innerHTML = this.template();
+    this.$target.insertAdjacentHTML("beforeend", this.template());
     this.mounted();
   }
 
