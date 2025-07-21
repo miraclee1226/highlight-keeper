@@ -1,3 +1,4 @@
+import { notifySidePanel } from "../bridge/sidepanel-bridge.js";
 import {
   getAllHighlights,
   getHighlightsByHref,
@@ -16,28 +17,14 @@ export function handleMessage(request, sender, sendResponse) {
             action: "create_success",
             data: res,
           });
+
+          notifySidePanel("highlight_created", res);
         })
         .catch((error) => {
           console.error("Save operation failed:", error);
           sendResponse({
             action: "create_error",
             error: error.message || "Unknown error during save operation",
-          });
-        });
-      break;
-
-    case "get_highlights_by_href":
-      getHighlightsByHref(request.payload)
-        .then((res) => {
-          sendResponse({
-            action: "get_success",
-            data: res,
-          });
-        })
-        .catch((error) => {
-          sendResponse({
-            action: "get_error",
-            error: error.message || "Unknown error during get operation",
           });
         });
       break;
@@ -49,6 +36,8 @@ export function handleMessage(request, sender, sendResponse) {
             action: "update_success",
             data: res,
           });
+
+          notifySidePanel("highlight_updated", res);
         })
         .catch((error) => {
           console.error("Update operation failed:", error);
@@ -66,12 +55,30 @@ export function handleMessage(request, sender, sendResponse) {
             action: "delete_success",
             data: res,
           });
+
+          notifySidePanel("highlight_deleted", { uuid: request.payload });
         })
         .catch((error) => {
           console.error("Delete operation failed:", error);
           sendResponse({
             action: "delete_error",
             error: error.message || "Unknown error during delete operation",
+          });
+        });
+      break;
+
+    case "get_highlights_by_href":
+      getHighlightsByHref(request.payload)
+        .then((res) => {
+          sendResponse({
+            action: "get_success",
+            data: res,
+          });
+        })
+        .catch((error) => {
+          sendResponse({
+            action: "get_error",
+            error: error.message || "Unknown error during get operation",
           });
         });
       break;
