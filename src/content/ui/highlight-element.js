@@ -4,8 +4,6 @@ export function createHighlightElement(text, highlightId, color) {
   span.className = "highlighted-element";
   span.textContent = text;
   span.dataset.id = highlightId;
-  span.dataset.timestamp = new Date().toISOString();
-  span.dataset.url = window.location.href;
   span.style.backgroundColor = color;
 
   span.addEventListener("mouseenter", () => {

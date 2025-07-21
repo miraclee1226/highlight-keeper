@@ -205,7 +205,6 @@ export function updateHighlight(uuid, updateData) {
       const updatedHighlight = {
         ...existingHighlight,
         ...updateData,
-        updatedAt: Date.now(),
       };
 
       return new Promise((resolve, reject) => {
