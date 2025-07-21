@@ -1,7 +1,7 @@
-import { initializeApp } from "./app.js";
+import { initializeEvents } from "./events/event-manager.js";
 
 async function init() {
-  await initializeApp();
+  await initializeEvents();
 }
 
 init();

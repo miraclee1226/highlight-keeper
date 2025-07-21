@@ -1,16 +1,10 @@
-import {
-  setupHighlightEvents,
-  setupSidePanelTabEvents,
-} from "./highlight-events.js";
-import { setupTabEvents } from "./tab-events.js";
+import { initializeCore } from "../services/services-manager.js";
 import { setupRuntimeEvents } from "./runtime-events.js";
-import { initializeCore } from "../core/highlight-service.js";
+import { setupTabEvents } from "./tab-events.js";
 
 export async function initializeEvents() {
   await initializeCore();
 
-  setupHighlightEvents();
-  setupTabEvents();
-  setupSidePanelTabEvents();
   setupRuntimeEvents();
+  setupTabEvents();
 }
