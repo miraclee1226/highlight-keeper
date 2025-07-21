@@ -53,7 +53,6 @@ export class NoteEditor extends Component {
     if (!this.state.isVisible || !this.editorElement) return;
 
     this.setupTextarea();
-    // 하이라이트 엘리먼트는 클릭해도 에디터가 닫히지 않도록 제외
     this.setupPopupEventHandlers([this.props.highlightElement]);
   }
 
@@ -69,6 +68,7 @@ export class NoteEditor extends Component {
       isHandled = true;
 
       const note = textarea.value.trim();
+
       this.saveNote(note);
       this.hide();
     };
@@ -78,21 +78,25 @@ export class NoteEditor extends Component {
   }
 
   async saveNote(note) {
-    if (!this.props.highlightElement) return;
-
-    const highlightId = this.props.highlightElement.dataset.id;
-    if (!highlightId) return;
-
-    const allElements = document.querySelectorAll(`[data-id="${highlightId}"]`);
-    allElements.forEach((element) => {
-      if (note.length > 0) {
-        element.dataset.note = note;
-      } else {
-        delete element.dataset.note;
-      }
-    });
-
     try {
+      if (!this.props.highlightElement) return;
+
+      const highlightId = this.props.highlightElement.dataset.id;
+
+      if (!highlightId) return;
+
+      const allElements = document.querySelectorAll(
+        `[data-id="${highlightId}"]`
+      );
+
+      allElements.forEach((element) => {
+        if (note.length > 0) {
+          element.dataset.note = note;
+        } else {
+          delete element.dataset.note;
+        }
+      });
+
       await updateHighlight(highlightId, { note });
     } catch (error) {
       console.error("Failed to save note:", error);
