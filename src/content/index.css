@@ -104,17 +104,6 @@
   box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Highlight Flash Animation */
-.highlight-flash {
-  animation: highlightFlash 1s ease-in-out 2;
-}
-
-@keyframes highlightFlash {
-  50% {
-    box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.2);
-  }
-}
-
 /* Button */
 .button {
   padding: 6px 12px;

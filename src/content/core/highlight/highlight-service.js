@@ -34,6 +34,7 @@ export async function createHighlight(selection, color) {
     };
 
     await createHighlightBridge(highlightData);
+
     const elements = renderHighlight(selection.range, highlightId, color);
 
     return { elements, highlightData };
@@ -118,9 +119,4 @@ export function scrollToHighlight(highlightId) {
 
   const firstElement = elements[0];
   firstElement.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  elements.forEach((element) => {
-    element.classList.add("highlight-flash");
-    setTimeout(() => element.classList.remove("highlight-flash"), 2000);
-  });
 }
