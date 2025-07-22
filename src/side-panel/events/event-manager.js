@@ -4,7 +4,6 @@ import { setupTabEvents } from "./tab-events.js";
 
 export async function initializeEvents() {
   await initializeCore();
-
   setupRuntimeEvents();
   setupTabEvents();
 }

@@ -1,14 +1,9 @@
-import { setCurrentUrl } from "./../state/url-state.js";
-import { App } from "../ui/app.js";
+import { urlState } from "../store/index.js";
 
 export async function initializeCore() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
-    const currentTab = tabs[0];
-    const tabUrl = currentTab?.url;
+    const url = tabs[0]?.url;
 
-    if (tabUrl) {
-      setCurrentUrl(tabUrl);
-      await App.create();
-    }
+    urlState.set(url);
   });
 }

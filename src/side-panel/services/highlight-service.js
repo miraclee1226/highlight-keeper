@@ -4,7 +4,7 @@ import { getDomainDetails } from "../../bridge/domain-bridge.js";
 import { DomainModal } from "../../components/modal/domain-modal.js";
 import { PageHighlightsModal } from "../../components/modal/page-highlights-modal.js";
 
-export function handleHighlightUpdate(request, currentUrl) {
+export function handleHighlightUpdate(request, url) {
   const currentPageInstance = CurrentPage.getCurrentInstance();
   const allPagesInstance = AllPages.getCurrentInstance();
   const domainModalInstance = DomainModal.getCurrentInstance();
@@ -12,7 +12,7 @@ export function handleHighlightUpdate(request, currentUrl) {
 
   switch (request.action) {
     case "highlight_created":
-      handleHighlightCreated(request, currentUrl, {
+      handleHighlightCreated(request, url, {
         currentPageInstance,
         allPagesInstance,
         domainModalInstance,
@@ -40,7 +40,7 @@ export function handleHighlightUpdate(request, currentUrl) {
   }
 }
 
-async function handleHighlightCreated(request, currentUrl, instances) {
+async function handleHighlightCreated(request, url, instances) {
   const {
     currentPageInstance,
     allPagesInstance,
@@ -48,7 +48,7 @@ async function handleHighlightCreated(request, currentUrl, instances) {
     pageModalInstance,
   } = instances;
 
-  if (currentPageInstance && currentUrl === request.data.href) {
+  if (currentPageInstance && url === request.data.href) {
     currentPageInstance.addHighlight(request.data);
   }
 

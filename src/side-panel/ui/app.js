@@ -1,4 +1,3 @@
-import { getCurrentUrl } from "../state/url-state.js";
 import { AllPages } from "./all-pages.js";
 import { CurrentPage } from "./current-page.js";
 import { Component } from "../../components/base-component.js";
@@ -58,10 +57,7 @@ export class App extends Component {
 
   async mounted() {
     if (this.state.activeTab === "currentPageTab") {
-      const currentUrl = getCurrentUrl();
-      await CurrentPage.create(currentUrl);
-    } else if (this.state.activeTab === "allPagesTab") {
-      await AllPages.create();
+      await CurrentPage.create();
     }
   }
 
@@ -98,10 +94,7 @@ export class App extends Component {
 
     switch (tabId) {
       case "currentPageTab":
-        const currentUrl = getCurrentUrl();
-        if (currentUrl) {
-          await CurrentPage.create(currentUrl);
-        }
+        await CurrentPage.create();
         break;
       case "allPagesTab":
         await AllPages.create();

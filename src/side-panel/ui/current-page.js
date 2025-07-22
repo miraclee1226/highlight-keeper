@@ -5,22 +5,20 @@ import {
 import { Component } from "../../components/base-component.js";
 import { HighlightCard } from "../../components/card/index.js";
 import { createMessageHTML } from "../../components/message/index.js";
+import { urlState } from "../store/index.js";
 
 export class CurrentPage extends Component {
   static currentInstance = null;
 
-  static async create(url) {
+  static async create() {
     try {
       if (CurrentPage.currentInstance) {
         CurrentPage.currentInstance.cleanup();
       }
 
       const $container = document.getElementById("currentPage");
-      const highlights = await getHighlights(url);
 
-      CurrentPage.currentInstance = new CurrentPage($container, {
-        highlights: highlights || [],
-      });
+      CurrentPage.currentInstance = new CurrentPage($container);
 
       return CurrentPage.currentInstance;
     } catch (error) {
@@ -37,10 +35,36 @@ export class CurrentPage extends Component {
     return CurrentPage.currentInstance;
   }
 
-  setup() {
+  async setup() {
     this.state = {
-      highlights: this.props.highlights || [],
+      highlights: [],
     };
+
+    this.unsubscribeUrl = urlState.subscribe(async (newUrl, prevUrl) => {
+      if (newUrl && this.isVisible()) {
+        await this.loadHighlights(newUrl);
+      }
+    });
+
+    const url = urlState.get();
+
+    if (url) {
+      await this.loadHighlights(url);
+    }
+  }
+
+  isVisible() {
+    return this.$target && this.$target.closest(".tab-content--active");
+  }
+
+  async loadHighlights(url) {
+    try {
+      const highlights = await getHighlights(url);
+      this.setState({ highlights: highlights || [] });
+    } catch (error) {
+      console.error("Fail to load highlights:", error);
+      this.setState({ highlights: [] });
+    }
   }
 
   mounted() {
@@ -84,7 +108,6 @@ export class CurrentPage extends Component {
   update() {
     this.willUpdate();
     this.$target.innerHTML = "";
-
     this.render();
     this.didUpdate();
   }
@@ -103,6 +126,10 @@ export class CurrentPage extends Component {
   }
 
   cleanup() {
+    if (this.unsubscribeUrl) {
+      this.unsubscribeUrl();
+    }
+
     if (this.$target) {
       this.$target.innerHTML = "";
     }
