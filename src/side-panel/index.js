@@ -1,8 +1,8 @@
-import { initializeEvents } from "./events/event-manager.js";
+import { initChromeEvents } from "./services/chrome-events.js";
 import { App } from "./ui/app.js";
 
 async function init() {
-  await initializeEvents();
+  initChromeEvents();
   await App.create();
 }
 
