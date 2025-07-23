@@ -3,6 +3,7 @@ import { getDomainDetails } from "../../bridge/domain-bridge.js";
 import { DomainCard } from "../card/domain-card.js";
 import { debounce } from "../../side-panel/utils/debounce.js";
 import { createMessageHTML } from "../message/index.js";
+import { PageHighlightsModal } from "./page-highlights-modal.js";
 
 export class SearchModal extends Modal {
   constructor() {
@@ -64,6 +65,13 @@ export class SearchModal extends Modal {
     }
   }
 
+  handleSearchInput(event) {
+    const text = event.target.value.trim();
+    const results = this.searchInHighlights(text);
+
+    this.renderSearchResults(results);
+  }
+
   searchInHighlights(text) {
     if (!text || text.trim() === "") {
       return this.allHighlights;
@@ -98,13 +106,6 @@ export class SearchModal extends Modal {
     }
   }
 
-  handleSearchInput(event) {
-    const text = event.target.value.trim();
-    const results = this.searchInHighlights(text);
-
-    this.renderSearchResults(results);
-  }
-
   setEvent() {
     super.setEvent();
 
@@ -121,12 +122,37 @@ export class SearchModal extends Modal {
     );
 
     $searchResults.addEventListener("click", (event) => {
-      const resultItem = event.target.closest(".search-result-item");
+      const domainItem = event.target.closest(".domain-item");
 
-      if (resultItem) {
-        const href = resultItem.dataset.href;
-        console.log("Navigate to:", href);
+      if (domainItem) {
+        this.handleDomainCardClick(domainItem);
       }
     });
+  }
+
+  handleDomainCardClick(domainItem) {
+    const infoElement = domainItem?.querySelector(".domain-item__info");
+    const titleElement = infoElement.querySelector(".domain-item__title");
+    const urlElement = infoElement.querySelector(".domain-item__url");
+
+    if (!titleElement || !urlElement) return;
+
+    const highlightText = titleElement.textContent;
+    const href = urlElement.textContent;
+
+    const matchingHighlight = this.allHighlights.find(
+      (highlight) => highlight.href === href && highlight.text === highlightText
+    );
+
+    if (matchingHighlight) {
+      const pageHighlightsModal = new PageHighlightsModal({
+        href: matchingHighlight.href,
+        pageTitle: matchingHighlight.pageTitle,
+      });
+
+      pageHighlightsModal.open();
+    } else {
+      console.log("No matching highlight found");
+    }
   }
 }

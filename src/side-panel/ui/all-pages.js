@@ -69,8 +69,9 @@ export class AllPages extends Component {
   setEvent() {
     this.addEvent("click", ".domain-item", (event) => {
       const domainElement = event.target.closest(".domain-item");
-      const siteName =
-        domainElement.querySelector(".domain-item__name").textContent;
+      const siteName = domainElement.querySelector(
+        ".domain-item__title"
+      ).textContent;
       const clickedDomain = this.state.domains.find(
         (domain) => domain.siteName === siteName
       );

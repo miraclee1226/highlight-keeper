@@ -15,7 +15,7 @@ export class DomainCard extends Component {
       <div class="domain-item">
         <img src="${favicon}" class="domain-item__favicon" alt="${siteName}" />
         <div class="domain-item__info">
-          <div class="domain-item__name">${
+          <div class="domain-item__title">${
             this.isResult ? text : siteName
           }</div>
           <div class="domain-item__url">${this.isResult ? href : domain}</div>
