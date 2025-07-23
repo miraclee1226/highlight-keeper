@@ -49,6 +49,7 @@ export class SearchModal extends Modal {
         domain.pages.forEach((page) => {
           page.highlights.forEach((highlight) => {
             this.allHighlights.push({
+              uuid: highlight.uuid,
               favicon: domain.favicon,
               siteName: domain.siteName,
               text: highlight.text,
@@ -146,6 +147,7 @@ export class SearchModal extends Modal {
 
     if (matchingHighlight) {
       const pageHighlightsModal = new PageHighlightsModal({
+        uuid: matchingHighlight.uuid,
         href: matchingHighlight.href,
         pageTitle: matchingHighlight.pageTitle,
       });

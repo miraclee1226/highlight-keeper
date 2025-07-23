@@ -17,7 +17,7 @@ export function sendMessageToTab(message) {
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, message, (response) => {
         if (isSuccessResponse(response)) {
-          resolve(response.data);
+          resolve(response);
         } else if (isErrorResponse(response)) {
           reject(new Error(response.error));
         } else {

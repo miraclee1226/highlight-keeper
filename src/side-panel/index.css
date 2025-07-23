@@ -528,6 +528,32 @@ span {
   padding: 20px;
 }
 
+.highlight-target {
+  animation: highlightBlink 1s ease-in-out infinite;
+}
+
+@keyframes highlightBlink {
+  0% {
+    background-color: transparent;
+    box-shadow: none;
+    border: 2px solid #e8e8e8;
+  }
+  50% {
+    background-color: #f1f5f9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #8eb2ff;
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+    border: 2px solid #e8e8e8;
+  }
+}
+
+.page-highlights-modal__content {
+  scroll-behavior: smooth;
+}
+
 /* Search Modal */
 .search-modal {
   display: flex;

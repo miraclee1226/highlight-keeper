@@ -6,7 +6,7 @@ import { escapeHtml } from "../../side-panel/utils/formatter.js";
 export class PageHighlightsModal extends Modal {
   static currentInstance = null;
 
-  constructor({ href, pageTitle }) {
+  constructor({ uuid, href, pageTitle }) {
     super();
 
     if (PageHighlightsModal.currentInstance) {
@@ -15,10 +15,11 @@ export class PageHighlightsModal extends Modal {
 
     PageHighlightsModal.currentInstance = this;
 
-    this.modalType = "bottom";
+    this.uuid = uuid;
     this.href = href;
     this.pageTitle = pageTitle;
     this.highlights = [];
+    this.modalType = "bottom";
   }
 
   static getCurrentInstance() {
@@ -47,6 +48,10 @@ export class PageHighlightsModal extends Modal {
     this.highlights = await getHighlights(this.href);
 
     this.renderHighlights();
+
+    if (this.uuid) {
+      this.scrollToHighlight();
+    }
   }
 
   isChangeRelevantToThisPage(request) {
@@ -96,6 +101,29 @@ export class PageHighlightsModal extends Modal {
     this.highlights.forEach((highlight) => {
       new HighlightCard($highlightContainer, { highlight });
     });
+  }
+
+  scrollToHighlight() {
+    setTimeout(() => {
+      const targetElement = this.element.querySelector(
+        `[data-id="${this.uuid}"]`
+      );
+
+      if (targetElement) {
+        targetElement.classList.add("highlight-target");
+
+        targetElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        setTimeout(() => {
+          targetElement.classList.remove("highlight-target");
+        }, 3000);
+      } else {
+        console.log(`Highlight with UUID ${this.uuid} not found.`);
+      }
+    }, 500);
   }
 
   destroy() {
