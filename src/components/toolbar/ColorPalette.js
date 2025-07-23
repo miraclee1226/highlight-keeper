@@ -3,55 +3,45 @@ import { Component } from "../base-component.js";
 
 export class ColorPalette extends Component {
   setup() {
-    this.state = {
-      currentColor: this.props.currentColor || COLORS[0],
-    };
+    this.currentColor = this.props.currentColor || null;
   }
 
   template() {
-    const { currentColor } = this.state;
-    const filteredColors = COLORS.filter((color) => color !== currentColor);
-
-    return `
-      <div class="color-palette-button main-color" 
-            style="background-color: ${currentColor}"></div>
-      <div class="hidden-colors">
-        ${filteredColors
-          .slice(0, 4)
-          .map(
-            (color, index) => `
-          <div class="color-palette-button hidden-color" 
-                style="background-color: ${color}; transition-delay: ${
-              index * 0.05
-            }s"></div>
-        `
-          )
-          .join("")}
-      </div>
-    `;
+    return COLORS.map(
+      (color) => `
+      <div class="color-palette-button ${
+        color === this.currentColor ? "current-color" : ""
+      }" 
+           style="background-color: ${color};" 
+           data-color="${color}"></div>
+    `
+    ).join("");
   }
 
   setEvent() {
-    const container = this.$target;
-
-    container.addEventListener("mouseenter", () => {
-      container.classList.add("expanded");
-    });
-
-    container.addEventListener("mouseleave", () => {
-      container.classList.remove("expanded");
-    });
-
     this.addEvent("click", ".color-palette-button", (e) => {
-      const selectedColor = e.target.style.backgroundColor;
+      const selectedColor = e.target.dataset.color;
 
-      if (e.target.classList.contains("hidden-color")) {
-        this.setState({ currentColor: selectedColor });
-      }
+      this.updateSelectedColor(selectedColor);
 
       if (this.props.onColorSelect) {
         this.props.onColorSelect(selectedColor);
       }
     });
+  }
+
+  updateSelectedColor(selectedColor) {
+    this.currentColor = selectedColor;
+    this.$target.querySelectorAll(".color-palette-button").forEach((btn) => {
+      btn.classList.remove("current-color");
+    });
+
+    const selectedButton = this.$target.querySelector(
+      `[data-color="${selectedColor}"]`
+    );
+
+    if (selectedButton) {
+      selectedButton.classList.add("current-color");
+    }
   }
 }

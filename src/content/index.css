@@ -182,96 +182,34 @@
 
 /* Color Palette */
 .color-palette-container {
-  position: relative;
   display: flex;
   align-items: center;
-  width: 24px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: visible;
+  gap: 6px;
 }
 
-.color-palette-container.expanded {
-  width: 168px;
-}
-
-.color-palette-button.main-color {
-  position: relative;
+.color-palette-button {
   width: 24px;
   height: 24px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2;
+  transition: all 0.2s ease;
 }
 
-.color-palette-button.main-color:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4) !important;
+.color-palette-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 }
 
-.hidden-colors {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.1s ease;
-  width: 100%;
+.color-palette-button.current-color {
+  border: 2px solid #daecff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
 }
 
-.color-palette-container.expanded .hidden-colors {
-  pointer-events: auto;
-  opacity: 1;
-}
-
-.color-palette-button.hidden-color {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform: scale(0);
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  z-index: 1;
-}
-
-.color-palette-container.expanded .hidden-color:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4) !important;
-  z-index: 3;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.color-palette-container.expanded .hidden-color:nth-child(1) {
-  transform: scale(1);
-  left: 36px;
-  transition-delay: 0.02s;
-}
-
-.color-palette-container.expanded .hidden-color:nth-child(2) {
-  transform: scale(1);
-  left: 72px;
-  transition-delay: 0.04s;
-}
-
-.color-palette-container.expanded .hidden-color:nth-child(3) {
-  transform: scale(1);
-  left: 108px;
-  transition-delay: 0.06s;
-}
-
-.color-palette-container.expanded .hidden-color:nth-child(4) {
-  transform: scale(1);
-  left: 144px;
-  transition-delay: 0.08s;
+.color-palette-button.current-color:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3), 0 3px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Note Editor */

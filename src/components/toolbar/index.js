@@ -26,20 +26,20 @@ export class Toolbar extends Component {
 
   template() {
     return `
-      <div class="toolbar"
-           style="top: ${this.state.position.top}px; left: ${
+    <div class="toolbar"
+         style="top: ${this.state.position.top}px; left: ${
       this.state.position.left
     }px;">
-        <div class="color-palette-container"></div>
-        <div class="toolbar-divider"></div>
-        <button class="note-button"></button>
-        ${
-          this.state.type === "highlight"
-            ? '<div class="toolbar-divider"></div><button class="delete-button"></button>'
-            : ""
-        }
-      </div>
-    `;
+      <div class="color-palette-container"></div>
+      <div class="toolbar-divider"></div>
+      <button class="note-button"></button>
+      ${
+        this.state.type === "highlight"
+          ? '<div class="toolbar-divider"></div><button class="delete-button"></button>'
+          : ""
+      }
+    </div>
+  `;
   }
 
   willUpdate() {
@@ -71,9 +71,11 @@ export class Toolbar extends Component {
     );
     const noteButton = this.toolbarElement.querySelector(".note-button");
     const deleteButton = this.toolbarElement.querySelector(".delete-button");
+    const currentColor =
+      this.state.type === "highlight" ? this.state.currentColor : null;
 
     new ColorPalette(colorPalette, {
-      currentColor: this.state.currentColor,
+      currentColor,
       onColorSelect: (color) => {
         if (this.props.onColorSelect) {
           this.props.onColorSelect(color);
