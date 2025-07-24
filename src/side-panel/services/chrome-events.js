@@ -1,35 +1,39 @@
-import { urlState } from "../store/index.js";
+import { pageState } from "../store/page-store.js";
 import { handleHighlightUpdate } from "./highlight-update.js";
 
 export function initChromeEvents() {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-    const url = tabs[0]?.url;
+    const tab = tabs[0];
 
-    urlState.set(url);
+    if (tab) {
+      pageState.set({ url: tab.url, title: tab.title });
+    }
   });
 
   chrome.tabs.onActivated.addListener((activeInfo) => {
     chrome.tabs.get(activeInfo.tabId, (tab) => {
-      const url = tab?.url;
-
-      urlState.set(url);
+      if (tab) {
+        pageState.set({ url: tab.url, title: tab.title });
+      }
     });
   });
 
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (!changeInfo.url) return;
+    if (!changeInfo.url && !changeInfo.title) return;
 
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       const currentTab = tabs[0];
       if (currentTab && currentTab.id === tabId) {
-        urlState.set(changeInfo.url);
+        pageState.set({
+          url: currentTab.url,
+          title: currentTab.title,
+        });
       }
     });
   });
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    const url = urlState.get();
-
+    const url = pageState.get().url;
     handleHighlightUpdate(request, url);
   });
 }

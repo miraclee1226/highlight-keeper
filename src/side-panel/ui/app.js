@@ -39,7 +39,7 @@ export class App extends Component {
             this.state.activeTab === "currentPageTab"
               ? "tabs__item--active"
               : ""
-          }" id="currentPageTab">Current</button>
+          }" id="currentPageTab">Current Page</button>
           <button class="tabs__item ${
             this.state.activeTab === "allPagesTab" ? "tabs__item--active" : ""
           }" id="allPagesTab">All Pages</button>

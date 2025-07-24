@@ -5,7 +5,7 @@ import {
 import { Component } from "../../components/base-component.js";
 import { HighlightCard } from "../../components/card/index.js";
 import { createMessageHTML } from "../../components/message/index.js";
-import { urlState } from "../store/index.js";
+import { pageState } from "../store/page-store.js";
 
 export class CurrentPage extends Component {
   static currentInstance = null;
@@ -38,19 +38,47 @@ export class CurrentPage extends Component {
   async setup() {
     this.state = {
       highlights: [],
+      pageInfo: pageState.get() || { url: null, title: null },
     };
 
-    this.unsubscribeUrl = urlState.subscribe(async (newUrl, prevUrl) => {
-      if (newUrl && this.isVisible()) {
-        await this.loadHighlights(newUrl);
+    this.unsubscribePage = pageState.subscribe(
+      async (newPageInfo, prevPageInfo) => {
+        if (newPageInfo?.url && this.isVisible()) {
+          this.setState({ pageInfo: newPageInfo });
+          await this.loadHighlights(newPageInfo.url);
+        }
       }
-    });
+    );
 
-    const url = urlState.get();
+    const url = pageState.get().url;
 
     if (url) {
       await this.loadHighlights(url);
     }
+  }
+
+  template() {
+    const pageInfo = this.state.pageInfo;
+
+    return `
+      <div class="current-page-container">
+        <div class="current-page-header">
+          <div class="current-page-info">
+            <h2 class="current-page-title">${
+              pageInfo.title || "Untitled Page"
+            }</h2>
+            <p class="current-page-url">${pageInfo.url}</p>
+          </div>
+
+          <button class="more-menu-btn">
+            <img src="${chrome.runtime.getURL(
+              "/public/icons/more_horiz.svg"
+            )}" alt="More options" />
+          </button>
+        </div>
+        
+        <div class="highlights-container"></div>
+    </div>`;
   }
 
   isVisible() {
@@ -68,14 +96,18 @@ export class CurrentPage extends Component {
   }
 
   mounted() {
+    const highlightsContainer = this.$target.querySelector(
+      ".highlights-container"
+    );
+
     if (this.state.highlights.length === 0) {
-      createMessageHTML(this.$target, {
+      createMessageHTML(highlightsContainer, {
         primaryText: "No highlights saved",
         secondaryText: "Drag text to start highlighting!",
       });
     } else {
       this.state.highlights.forEach((highlight) => {
-        new HighlightCard(this.$target, {
+        new HighlightCard(highlightsContainer, {
           highlight,
         });
       });
@@ -123,11 +155,16 @@ export class CurrentPage extends Component {
         console.log(error);
       }
     });
+
+    this.addEvent("click", ".more-menu-btn", (event) => {
+      event.stopPropagation();
+      console.log("more menu clicked");
+    });
   }
 
   cleanup() {
-    if (this.unsubscribeUrl) {
-      this.unsubscribeUrl();
+    if (this.unsubscribePage) {
+      this.unsubscribePage();
     }
 
     if (this.$target) {
