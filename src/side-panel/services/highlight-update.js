@@ -1,14 +1,17 @@
-import { CurrentPage } from "../ui/current-page.js";
-import { AllPages } from "../ui/all-pages.js";
 import { getDomainDetails } from "../../bridge/domain-bridge.js";
 import { DomainModal } from "../../components/modal/domain-modal.js";
 import { PageHighlightsModal } from "../../components/modal/page-highlights-modal.js";
+import { App } from "../ui/app.js";
 
 export function handleHighlightUpdate(request, url) {
-  const currentPageInstance = CurrentPage.getCurrentInstance();
-  const allPagesInstance = AllPages.getCurrentInstance();
-  const domainModalInstance = DomainModal.getCurrentInstance();
-  const pageModalInstance = PageHighlightsModal.getCurrentInstance();
+  const appInstance = App.getInstance();
+
+  if (!appInstance) return;
+
+  const currentPageInstance = appInstance.getCurrentPageInstance();
+  const allPagesInstance = appInstance.getAllPagesInstance();
+  const domainModalInstance = DomainModal.getInstance();
+  const pageModalInstance = PageHighlightsModal.getInstance();
 
   switch (request.action) {
     case "highlight_created":
