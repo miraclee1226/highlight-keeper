@@ -8,97 +8,100 @@ import { createMessageHTML } from "../../components/message/index.js";
 import { pageState } from "../store/page-store.js";
 
 export class CurrentPage extends Component {
-  static currentInstance = null;
-
-  static async create() {
-    try {
-      if (CurrentPage.currentInstance) {
-        CurrentPage.currentInstance.cleanup();
-      }
-
-      const $container = document.getElementById("currentPage");
-
-      CurrentPage.currentInstance = new CurrentPage($container);
-
-      return CurrentPage.currentInstance;
-    } catch (error) {
-      const $container = document.getElementById("currentPage");
-      createMessageHTML($container, {
-        primaryText: "Unable to load highlights",
-        secondaryText: "Please refresh the page or try again later",
-        isError: true,
-      });
-    }
-  }
-
-  static getCurrentInstance() {
-    return CurrentPage.currentInstance;
-  }
-
-  async setup() {
+  setup() {
     this.state = {
       highlights: [],
-      pageInfo: pageState.get() || { url: null, title: null },
     };
 
     this.unsubscribePage = pageState.subscribe(
       async (newPageInfo, prevPageInfo) => {
-        if (newPageInfo?.url && this.isVisible()) {
-          this.setState({ pageInfo: newPageInfo });
-          await this.loadHighlights(newPageInfo.url);
-        }
+        this.updatePageHeader(newPageInfo);
+        await this.loadHighlights(newPageInfo.url);
       }
     );
+  }
 
-    const url = pageState.get().url;
+  updatePageHeader(newPageInfo) {
+    const titleElement = this.$target.querySelector(".current-page-title");
+    const urlElement = this.$target.querySelector(".current-page-url");
 
-    if (url) {
-      await this.loadHighlights(url);
+    if (titleElement) {
+      titleElement.textContent = newPageInfo.title || "Untitled Page";
     }
-  }
 
-  template() {
-    const pageInfo = this.state.pageInfo;
-
-    return `
-      <div class="current-page-container">
-        <div class="current-page-header">
-          <div class="current-page-info">
-            <h2 class="current-page-title">${
-              pageInfo.title || "Untitled Page"
-            }</h2>
-            <p class="current-page-url">${pageInfo.url}</p>
-          </div>
-
-          <button class="more-menu-btn">
-            <img src="${chrome.runtime.getURL(
-              "/public/icons/more_horiz.svg"
-            )}" alt="More options" />
-          </button>
-        </div>
-        
-        <div class="highlights-container"></div>
-    </div>`;
-  }
-
-  isVisible() {
-    return this.$target && this.$target.closest(".tab-content--active");
+    if (urlElement) {
+      urlElement.textContent = newPageInfo.url;
+    }
   }
 
   async loadHighlights(url) {
     try {
       const highlights = await getHighlights(url);
-      this.setState({ highlights: highlights || [] });
+      this.state.highlights = highlights || [];
+      this.renderContent();
     } catch (error) {
       console.error("Fail to load highlights:", error);
-      this.setState({ highlights: [] });
+      this.state.highlights = [];
+      this.renderContent();
     }
   }
 
-  mounted() {
+  template() {
+    const pageInfo = pageState.get();
+
+    return `
+      <div class="current-page-container">
+        <div class="current-page-header">
+          <div class="current-page-info">
+            <h2 class="current-page-title">
+              ${pageInfo.title || "Untitled Page"}
+            </h2>
+            <p class="current-page-url">${pageInfo.url}</p>
+          </div>
+
+          <div class="dropdown-container">
+            <button class="more-menu-btn">
+              <img src="${chrome.runtime.getURL(
+                "/public/icons/more_horiz.svg"
+              )}" alt="More options" />
+            </button>
+
+            <ul class="menu-list">
+              <li>
+                <button class="menu-item">
+                  Copy All Highlights
+                </button>
+              </li>
+              <li>
+                <button class="menu-item delete-all">
+                  Delete All Highlights
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="highlights-container"></div>
+      </div>`;
+  }
+
+  async mounted() {
+    const pageInfo = pageState.get();
+
+    if (pageInfo.url && this.state.highlights.length === 0) {
+      await this.loadHighlights(pageInfo.url);
+      return;
+    }
+
+    this.renderContent();
+  }
+
+  renderContent() {
     const highlightsContainer = this.$target.querySelector(
       ".highlights-container"
     );
+
+    highlightsContainer.innerHTML = "";
 
     if (this.state.highlights.length === 0) {
       createMessageHTML(highlightsContainer, {
@@ -107,41 +110,30 @@ export class CurrentPage extends Component {
       });
     } else {
       this.state.highlights.forEach((highlight) => {
-        new HighlightCard(highlightsContainer, {
-          highlight,
-        });
+        new HighlightCard(highlightsContainer, { highlight });
       });
     }
   }
 
   addHighlight(newData) {
-    const updatedHighlights = [...this.state.highlights, newData];
-
-    this.setState({ highlights: updatedHighlights });
+    this.state.highlights = [...this.state.highlights, newData];
+    this.renderContent();
   }
 
   updateHighlight(newData) {
     const { uuid } = newData;
-    const updatedHighlights = this.state.highlights.map((highlight) => {
+
+    this.state.highlights = this.state.highlights.map((highlight) => {
       return highlight.uuid === uuid ? { ...highlight, ...newData } : highlight;
     });
-
-    this.setState({ highlights: updatedHighlights });
+    this.renderContent();
   }
 
   removeHighlight(uuid) {
-    const updatedHighlights = this.state.highlights.filter((highlight) => {
+    this.state.highlights = this.state.highlights.filter((highlight) => {
       return highlight.uuid !== uuid;
     });
-
-    this.setState({ highlights: updatedHighlights });
-  }
-
-  update() {
-    this.willUpdate();
-    this.$target.innerHTML = "";
-    this.render();
-    this.didUpdate();
+    this.renderContent();
   }
 
   setEvent() {
@@ -158,8 +150,39 @@ export class CurrentPage extends Component {
 
     this.addEvent("click", ".more-menu-btn", (event) => {
       event.stopPropagation();
-      console.log("more menu clicked");
+
+      const dropdown = this.$target.querySelector(".menu-list");
+      if (dropdown) {
+        dropdown.classList.toggle("active");
+      }
     });
+
+    this.addEvent("click", ".menu-list", (event) => {
+      event.stopPropagation();
+
+      const action = event.target.textContent.trim();
+
+      switch (action) {
+        case "Copy All Highlights":
+          this.copyAllHighlights();
+          break;
+        case "Delete All Highlights":
+          this.deleteAllHighlights();
+          break;
+        default:
+          console.warn("Unknown action:", action);
+      }
+    });
+  }
+
+  // TODO
+  copyAllHighlights() {
+    console.log("Copy all highlights");
+  }
+
+  // TODO
+  deleteAllHighlights() {
+    console.log("Delete all highlights");
   }
 
   cleanup() {
@@ -170,7 +193,5 @@ export class CurrentPage extends Component {
     if (this.$target) {
       this.$target.innerHTML = "";
     }
-
-    CurrentPage.currentInstance = null;
   }
 }
