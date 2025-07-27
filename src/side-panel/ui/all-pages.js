@@ -5,65 +5,61 @@ import { createMessageHTML } from "../../components/message/index.js";
 import { DomainModal } from "../../components/modal/index.js";
 
 export class AllPages extends Component {
-  static currentInstance = null;
+  setup() {
+    this.state = {
+      domains: [],
+    };
+    this.hasError = false;
+  }
 
-  static async create() {
+  async loadDomainDetails() {
     try {
-      if (AllPages.currentInstance) {
-        AllPages.currentInstance.cleanup();
-      }
-
-      const $container = document.getElementById("allPages");
       const domainDetails = await getDomainDetails();
-
-      AllPages.currentInstance = new AllPages($container, {
-        domainDetails: domainDetails || [],
-      });
-
-      return AllPages.currentInstance;
+      this.state.domains = domainDetails || [];
+      this.hasError = false;
     } catch (error) {
-      const $container = document.getElementById("allPages");
-      createMessageHTML($container, {
+      console.error("Failed to load domain details:", error);
+      this.state.domains = [];
+      this.hasError = true;
+    }
+  }
+
+  async mounted() {
+    await this.loadDomainDetails();
+    this.renderContent();
+  }
+
+  renderContent() {
+    this.$target.innerHTML = "";
+
+    if (this.hasError) {
+      createMessageHTML(this.$target, {
         primaryText: "Unable to load highlights",
         secondaryText: "Please refresh the page or try again later",
         isError: true,
       });
+
+      return;
     }
-  }
 
-  static getCurrentInstance() {
-    return AllPages.currentInstance;
-  }
-
-  setup() {
-    this.state = {
-      domains: this.props.domainDetails || [],
-    };
-  }
-
-  mounted() {
     if (this.state.domains.length === 0) {
       createMessageHTML(this.$target, {
         primaryText: "No highlights found",
         secondaryText: "Drag text to start highlighting!",
       });
-    } else {
-      this.state.domains.forEach((domain) => {
-        new DomainCard(this.$target, domain);
-      });
+
+      return;
     }
+
+    this.state.domains.forEach((domain) => {
+      new DomainCard(this.$target, domain);
+    });
   }
 
-  updateDomainsData(newDomainDetails) {
-    this.setState({ domains: newDomainDetails });
-  }
-
-  update() {
-    this.willUpdate();
-    this.$target.innerHTML = "";
-
-    this.render();
-    this.didUpdate();
+  async updateDomainsData(newDomainDetails) {
+    this.state.domains = newDomainDetails;
+    this.hasError = false;
+    this.renderContent();
   }
 
   setEvent() {
@@ -77,8 +73,7 @@ export class AllPages extends Component {
       );
 
       if (clickedDomain) {
-        const domainModal = new DomainModal(clickedDomain);
-        domainModal.open();
+        DomainModal.open(clickedDomain);
       }
     });
   }
@@ -87,7 +82,5 @@ export class AllPages extends Component {
     if (this.$target) {
       this.$target.innerHTML = "";
     }
-
-    AllPages.currentInstance = null;
   }
 }
