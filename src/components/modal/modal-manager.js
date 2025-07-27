@@ -1,10 +1,8 @@
 export class ModalManager {
-  static instance = null;
+  static instance;
 
   constructor() {
-    if (ModalManager.instance) {
-      throw new Error("MondalManager is singleton. Use getInstance().");
-    }
+    if (ModalManager.instance) return ModalManager.instance;
 
     this.overlay = null;
     this.modalStack = [];
@@ -14,27 +12,102 @@ export class ModalManager {
 
   static getInstance() {
     if (!ModalManager.instance) {
-      new ModalManager();
+      ModalManager.instance = new ModalManager();
     }
 
     return ModalManager.instance;
   }
 
-  openModal(instance) {
+  openModal(modal) {
     if (this.modalStack.length === 0) {
-      this.renderOverlay();
+      this.createOverlay();
     }
 
-    this.modalStack.push(instance);
-    this.mounted(instance);
+    modal.element = null;
+
+    this.modalStack.push(modal);
+    this.mountModal(modal);
   }
 
-  closeModal(instance) {
-    const index = this.modalStack.indexOf(instance);
+  createOverlay() {
+    const overlayHTML = '<div class="modal-overlay"></div>';
+    document.body.insertAdjacentHTML("beforeend", overlayHTML);
+
+    this.overlay = document.body.lastElementChild;
+    this.setOverlayEvents();
+
+    setTimeout(() => {
+      this.overlay.classList.add("active");
+    }, 10);
+  }
+
+  mountModal(modal) {
+    const modalHTML = modal.template();
+    const zIndex = 1000 + this.modalStack.length;
+
+    this.overlay.insertAdjacentHTML("beforeend", modalHTML);
+
+    modal.element = this.overlay.lastElementChild;
+    modal.element.style.zIndex = zIndex;
+
+    this.playOpenAnimation(modal);
+
+    setTimeout(() => {
+      this.setEvents(modal);
+    }, 10);
+  }
+
+  playOpenAnimation(modal) {
+    const modalType = modal.modalType || "bottom";
+
+    if (modalType === "center") {
+      modal.element.style.opacity = "0";
+      modal.element.style.transform = "translate(-50%, -50%) scale(0.9)";
+
+      setTimeout(() => {
+        modal.element.style.opacity = "1";
+        modal.element.style.transform = "translate(-50%, -50%) scale(1)";
+      }, 10);
+    } else {
+      modal.element.style.transform = "translateY(100%)";
+
+      setTimeout(() => {
+        modal.element.style.transform = "translateY(0)";
+      }, 10);
+    }
+  }
+
+  closeModal(modal) {
+    this.playCloseAnimation(modal);
+
+    setTimeout(() => {
+      this.removeModal(modal);
+    }, 300);
+  }
+
+  playCloseAnimation(modal) {
+    if (!modal.element) return;
+
+    const modalType = modal.modalType || "bottom";
+
+    if (modalType === "center") {
+      modal.element.style.opacity = "0";
+      modal.element.style.transform = "translate(-50%, -50%) scale(0.9)";
+    } else {
+      modal.element.style.transform = "translateY(100%)";
+    }
+  }
+
+  removeModal(modal) {
+    const index = this.modalStack.indexOf(modal);
 
     if (index > -1) {
       this.modalStack.splice(index, 1);
-      instance.destroy();
+
+      if (modal.element) {
+        modal.element.remove();
+        modal.element = null;
+      }
     }
 
     if (this.modalStack.length === 0) {
@@ -42,81 +115,47 @@ export class ModalManager {
     }
   }
 
-  createOverlay() {
-    return `<div class="modal-overlay"></div>`;
-  }
+  setEvents(modal) {
+    const closeBtn = modal.element.querySelector(".modal__close-btn");
 
-  renderOverlay() {
-    const overlayHTML = this.createOverlay();
-    document.body.insertAdjacentHTML("beforeend", overlayHTML);
-
-    this.overlay = document.body.lastElementChild;
-
-    this.setEvent();
-
-    setTimeout(() => {
-      this.overlay.classList.add("active");
-    }, 10);
-  }
-
-  mounted(instance) {
-    const parent = this.overlay;
-    const modalHTML = instance.template();
-    const zIndex = 1000 + this.modalStack.length;
-
-    parent.insertAdjacentHTML("beforeend", modalHTML);
-
-    instance.element = parent.lastElementChild;
-    instance.element.style.zIndex = zIndex;
-
-    if (instance.modalType === "center") {
-      instance.element.style.opacity = "0";
-      instance.element.style.transform = "translate(-50%, -50%) scale(0.9)";
-
-      setTimeout(() => {
-        instance.element.style.opacity = "1";
-        instance.element.style.transform = "translate(-50%, -50%) scale(1)";
-        instance.setEvent();
-      }, 10);
-    } else {
-      instance.element.style.transform = "translateY(100%)";
-
-      setTimeout(() => {
-        instance.element.style.transform = "translateY(0)";
-        instance.setEvent();
-      }, 10);
+    if (closeBtn) {
+      closeBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.closeModal(modal);
+      });
     }
+
+    if (typeof modal.setEvents === "function") {
+      modal.setEvents();
+    }
+  }
+
+  setOverlayEvents() {
+    this.overlay.addEventListener("click", (event) => {
+      if (event.target === this.overlay) {
+        this.closeAllModals();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && this.modalStack.length > 0) {
+        this.closeAllModals();
+      }
+    });
   }
 
   closeAllModals() {
     const topModal = this.modalStack[this.modalStack.length - 1];
 
     if (topModal) {
-      if (topModal.element) {
-        if (topModal.modalType === "center") {
-          topModal.element.style.opacity = "0";
-          topModal.element.style.transform = "translate(-50%, -50%) scale(0.9)";
-        } else {
-          topModal.element.style.transform = "translateY(100%)";
-        }
-      }
+      this.closeModal(topModal);
 
       setTimeout(() => {
-        this.closeModal(topModal);
-
         if (this.modalStack.length > 0) {
           this.closeAllModals();
         }
       }, 300);
     }
-  }
-
-  setEvent() {
-    this.overlay.addEventListener("click", (event) => {
-      if (event.target === this.overlay) {
-        this.closeAllModals();
-      }
-    });
   }
 
   destroyOverlay() {
