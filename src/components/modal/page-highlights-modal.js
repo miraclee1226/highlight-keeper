@@ -1,19 +1,17 @@
-import { Modal } from "./base-modal.js";
+import { ModalManager } from "./modal-manager.js";
 import { HighlightCard } from "../card/index.js";
 import { getHighlights } from "../../bridge/highlight-bridge.js";
 import { escapeHtml } from "../../side-panel/utils/formatter.js";
 
-export class PageHighlightsModal extends Modal {
-  static currentInstance = null;
+export class PageHighlightsModal {
+  static instance;
 
   constructor({ uuid, href, pageTitle }) {
-    super();
-
-    if (PageHighlightsModal.currentInstance) {
-      PageHighlightsModal.currentInstance.close();
+    if (PageHighlightsModal.instance) {
+      ModalManager.getInstance().closeModal(PageHighlightsModal.instance);
     }
 
-    PageHighlightsModal.currentInstance = this;
+    PageHighlightsModal.instance = this;
 
     this.uuid = uuid;
     this.href = href;
@@ -22,8 +20,18 @@ export class PageHighlightsModal extends Modal {
     this.modalType = "bottom";
   }
 
-  static getCurrentInstance() {
-    return PageHighlightsModal.currentInstance;
+  static async open({ uuid, href, pageTitle }) {
+    const modal = new PageHighlightsModal({ uuid, href, pageTitle });
+
+    ModalManager.getInstance().openModal(modal);
+
+    modal.initialize();
+
+    return modal;
+  }
+
+  static getInstance() {
+    return PageHighlightsModal.instance;
   }
 
   template() {
@@ -38,19 +46,21 @@ export class PageHighlightsModal extends Modal {
           </div>
           <button class="modal__close-btn">×</button>
         </div>
-        <div class="page-highlights-modal__content" id="pageHighlightsList"></div>
+        <div class="page-highlights-modal__content" id="pageHighlightsList">
+        </div>
       </div>`;
   }
 
-  async open() {
-    super.open();
+  async initialize() {
+    try {
+      this.highlights = await getHighlights(this.href);
+      this.renderHighlights();
 
-    this.highlights = await getHighlights(this.href);
-
-    this.renderHighlights();
-
-    if (this.uuid) {
-      this.scrollToHighlight();
+      if (this.uuid) {
+        this.scrollToHighlight();
+      }
+    } catch (error) {
+      console.error("Failed to load highlights:", error);
     }
   }
 
@@ -82,7 +92,7 @@ export class PageHighlightsModal extends Modal {
         this.highlights = highlights;
         this.renderHighlights();
       } else {
-        this.close();
+        ModalManager.getInstance().closeModal(this);
       }
     } catch (error) {
       console.error("Page Modal update failed:", error);
@@ -93,8 +103,6 @@ export class PageHighlightsModal extends Modal {
     const $highlightContainer = this.element.querySelector(
       "#pageHighlightsList"
     );
-
-    if (!$highlightContainer) return;
 
     $highlightContainer.innerHTML = "";
 
@@ -127,7 +135,6 @@ export class PageHighlightsModal extends Modal {
   }
 
   destroy() {
-    super.destroy();
-    PageHighlightsModal.currentInstance = null;
+    PageHighlightsModal.instance = null;
   }
 }

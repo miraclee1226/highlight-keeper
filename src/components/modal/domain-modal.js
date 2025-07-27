@@ -1,26 +1,32 @@
 import { getDomainDetails } from "../../bridge/domain-bridge.js";
 import { escapeHtml } from "../../side-panel/utils/formatter.js";
-import { Modal } from "./base-modal.js";
 import { PageHighlightsModal } from "./page-highlights-modal.js";
+import { ModalManager } from "./modal-manager.js";
 
-export class DomainModal extends Modal {
-  static currentInstance = null;
+export class DomainModal {
+  static instance;
 
   constructor(domainData) {
-    super();
-
-    if (DomainModal.currentInstance) {
-      DomainModal.currentInstance.close();
+    if (DomainModal.instance) {
+      ModalManager.getInstance().closeModal(DomainModal.instance);
     }
 
-    DomainModal.currentInstance = this;
+    DomainModal.instance = this;
 
     this.modalType = "bottom";
     this.domainData = domainData;
   }
 
-  static getCurrentInstance() {
-    return DomainModal.currentInstance;
+  static open(domainData) {
+    const modal = new DomainModal(domainData);
+
+    ModalManager.getInstance().openModal(modal);
+
+    return modal;
+  }
+
+  static getInstance() {
+    return DomainModal.instance;
   }
 
   template() {
@@ -83,22 +89,13 @@ export class DomainModal extends Modal {
     `;
   }
 
-  setEvent() {
-    super.setEvent();
-
+  setEvents() {
     this.element.addEventListener("click", (event) => {
       const viewAllBtn = event.target.closest(".domain-modal__view-all-btn");
-
-      if (!viewAllBtn) return;
-
       const href = viewAllBtn?.dataset.href;
       const pageTitle = viewAllBtn?.dataset.pageTitle;
-      const pageHighlightsModal = new PageHighlightsModal({
-        href,
-        pageTitle,
-      });
 
-      pageHighlightsModal.open();
+      PageHighlightsModal.open({ href, pageTitle });
     });
   }
 
@@ -123,7 +120,7 @@ export class DomainModal extends Modal {
         this.domainData = updatedDomain;
         this.updateModalContent();
       } else {
-        this.close();
+        ModalManager.getInstance().closeModal(this);
       }
     } catch (error) {
       console.error("Domain modal update failed:", error);
@@ -133,18 +130,14 @@ export class DomainModal extends Modal {
   updateModalContent() {
     const $content = this.element.querySelector(".domain-modal__content");
 
-    if (!$content) return;
-
     $content.innerHTML = this.domainData.pages
       .map((page) => this.createPageGroupHTML(page))
       .join("");
 
-    this.setEvent();
+    this.setEvents();
   }
 
   destroy() {
-    super.destroy();
-
-    DomainModal.currentInstance = null;
+    DomainModal.instance = null;
   }
 }

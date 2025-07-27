@@ -1,16 +1,25 @@
-import { Modal } from "./base-modal.js";
+import { ModalManager } from "./modal-manager.js";
 import { getDomainDetails } from "../../bridge/domain-bridge.js";
 import { DomainCard } from "../card/domain-card.js";
 import { debounce } from "../../side-panel/utils/debounce.js";
 import { createMessageHTML } from "../message/index.js";
 import { PageHighlightsModal } from "./page-highlights-modal.js";
 
-export class SearchModal extends Modal {
+export class SearchModal {
   constructor() {
-    super();
     this.modalType = "center";
     this.searchTimeout = null;
     this.allHighlights = [];
+  }
+
+  static async open() {
+    const modal = new SearchModal();
+
+    ModalManager.getInstance().openModal(modal);
+
+    await modal.initialize();
+
+    return modal;
   }
 
   template() {
@@ -29,15 +38,16 @@ export class SearchModal extends Modal {
     `;
   }
 
-  async open() {
-    super.open();
+  async initialize() {
+    try {
+      await this.loadAllHighlights();
+      this.renderSearchResults(this.allHighlights);
 
-    await this.loadAllHighlights();
-
-    this.renderSearchResults(this.allHighlights);
-
-    const $input = this.element.querySelector("#searchInput");
-    if ($input) $input.focus();
+      const $input = this.element.querySelector("#searchInput");
+      if ($input) $input.focus();
+    } catch (error) {
+      console.error("Failed to load search data:", error);
+    }
   }
 
   async loadAllHighlights() {
@@ -51,10 +61,8 @@ export class SearchModal extends Modal {
             this.allHighlights.push({
               uuid: highlight.uuid,
               favicon: domain.favicon,
-              siteName: domain.siteName,
               text: highlight.text,
               href: page.href,
-              color: highlight.color,
               pageTitle: page.pageTitle,
             });
           });
@@ -82,8 +90,7 @@ export class SearchModal extends Modal {
     const filteredText = this.allHighlights.filter(
       (item) =>
         item.text.toLowerCase().includes(lowerText) ||
-        item.href.toLowerCase().includes(lowerText) ||
-        item.pageTitle.toLowerCase().includes(lowerText)
+        item.href.toLowerCase().includes(lowerText)
     );
 
     return filteredText;
@@ -107,9 +114,32 @@ export class SearchModal extends Modal {
     }
   }
 
-  setEvent() {
-    super.setEvent();
+  handleDomainCardClick(domainItem) {
+    const infoElement = domainItem?.querySelector(".domain-item__info");
+    const titleElement = infoElement?.querySelector(".domain-item__title");
+    const urlElement = infoElement?.querySelector(".domain-item__url");
 
+    if (!titleElement || !urlElement) return;
+
+    const highlightText = titleElement.textContent;
+    const href = urlElement.textContent;
+
+    const matchingHighlight = this.allHighlights.find(
+      (highlight) => highlight.href === href && highlight.text === highlightText
+    );
+
+    if (matchingHighlight) {
+      PageHighlightsModal.open({
+        uuid: matchingHighlight.uuid,
+        href: matchingHighlight.href,
+        pageTitle: matchingHighlight.pageTitle,
+      });
+    } else {
+      console.log("No matching highlight found");
+    }
+  }
+
+  setEvents() {
     const $searchInput = this.element.querySelector("#searchInput");
     const $searchResults = this.element.querySelector("#searchResults");
 
@@ -131,30 +161,9 @@ export class SearchModal extends Modal {
     });
   }
 
-  handleDomainCardClick(domainItem) {
-    const infoElement = domainItem?.querySelector(".domain-item__info");
-    const titleElement = infoElement.querySelector(".domain-item__title");
-    const urlElement = infoElement.querySelector(".domain-item__url");
-
-    if (!titleElement || !urlElement) return;
-
-    const highlightText = titleElement.textContent;
-    const href = urlElement.textContent;
-
-    const matchingHighlight = this.allHighlights.find(
-      (highlight) => highlight.href === href && highlight.text === highlightText
-    );
-
-    if (matchingHighlight) {
-      const pageHighlightsModal = new PageHighlightsModal({
-        uuid: matchingHighlight.uuid,
-        href: matchingHighlight.href,
-        pageTitle: matchingHighlight.pageTitle,
-      });
-
-      pageHighlightsModal.open();
-    } else {
-      console.log("No matching highlight found");
+  destroy() {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
     }
   }
 }
