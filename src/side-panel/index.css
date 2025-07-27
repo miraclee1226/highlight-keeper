@@ -14,6 +14,7 @@ html {
 body {
   font-family: "Noto Sans KR", sans-serif;
   padding: 10px;
+  overflow-y: scroll;
 }
 
 button {
@@ -64,9 +65,15 @@ span {
   line-height: 1.5;
 }
 
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .app__header {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   height: 44px;
 }
 
@@ -78,6 +85,11 @@ span {
   background: #f1f5f9;
   border-radius: 8px;
   padding: 4px;
+}
+
+.dehaze-icon {
+  display: flex;
+  align-items: center;
 }
 
 .search-icon {
@@ -126,12 +138,6 @@ span {
   display: flex;
 }
 
-.side-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .current-page-container {
   display: flex;
   flex-direction: column;
@@ -176,6 +182,72 @@ span {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* More Menu Dropdown */
+.dropdown-container {
+  position: relative;
+}
+
+.menu-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 160px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+
+.menu-list.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.menu-item {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: #f3f4f6;
+}
+
+.menu-item.delete-all {
+  color: #e74c3c;
+}
+
+.menu-item.export-notion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu-item.export-notion img {
+  width: 18px;
+  height: 18px;
+}
+
+.menu-list:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.menu-list:last-child {
+  border-radius: 0 0 6px 6px;
 }
 
 /* Card Component */
