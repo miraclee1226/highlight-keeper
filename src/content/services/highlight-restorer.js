@@ -1,58 +1,61 @@
 import { getHighlights } from "../../bridge/highlight-bridge.js";
+import { RETRY_DELAYS } from "../../constant/index.js";
 import {
   getRangeFromRelativeOffset,
   renderHighlight,
 } from "../utils/dom-utils.js";
 
 export class HighlightRestorer {
-  constructor() {
-    this.isRestoring = false;
-    this.restoredHighlights = new Set();
-  }
-
   async restore(url) {
-    if (this.isRestoring) return;
-
     try {
-      this.isRestoring = true;
       const highlights = await getHighlights(url);
 
       if (!highlights) return;
 
-      await this.waitForDOMReady();
-      this.attemptRestore(highlights);
+      await this.waitForContentReady();
+
+      RETRY_DELAYS.forEach((delay) => {
+        setTimeout(() => {
+          highlights.forEach((highlight) => {
+            this.restoreHighlight(highlight);
+          });
+        }, delay);
+      });
     } catch (error) {
       console.error("Failed to restore highlights:", error);
-    } finally {
-      this.isRestoring = false;
     }
   }
 
-  async waitForDOMReady() {
-    return new Promise((resolve) => {
-      if (document.readyState === "complete") {
-        resolve();
-      } else {
-        window.addEventListener("load", resolve);
-      }
-    });
-  }
+  async waitForContentReady() {
+    const root = document.getElementById("root");
 
-  attemptRestore(highlights) {
-    const retryDelays = [0, 500, 1000, 2000, 4000, 6000, 8000];
+    if (root) {
+      if (root.children.length > 0) return;
 
-    retryDelays.forEach((delay) => {
-      setTimeout(() => {
-        highlights.forEach((highlight) => {
-          this.restoreHighlight(highlight);
+      return new Promise((resolve) => {
+        const observer = new MutationObserver(() => {
+          observer.disconnect();
+          resolve();
         });
-      }, delay);
-    });
+        const config = { childList: true, subtree: true };
+
+        observer.observe(root, config);
+
+        setTimeout(() => {
+          observer.disconnect();
+          resolve();
+        }, 10000);
+      });
+    }
+
+    if (document.readyState !== "complete") {
+      return new Promise((resolve) =>
+        window.addEventListener("load", resolve, { once: true })
+      );
+    }
   }
 
   restoreHighlight(highlight) {
-    if (this.isAlreadyRestored(highlight.uuid)) return true;
-
     try {
       const { selection } = highlight;
       const startElement = document.querySelector(selection.startContainerPath);
@@ -77,18 +80,9 @@ export class HighlightRestorer {
         });
       }
 
-      this.restoredHighlights.add(highlight.uuid);
-
       return elements.length > 0;
     } catch (error) {
       return false;
     }
-  }
-
-  isAlreadyRestored(highlightId) {
-    return (
-      this.restoredHighlights.has(highlightId) ||
-      document.querySelector(`[data-id="${highlightId}"]`) !== null
-    );
   }
 }
