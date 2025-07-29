@@ -92,6 +92,9 @@ export class DomainModal {
   setEvents() {
     this.element.addEventListener("click", (event) => {
       const viewAllBtn = event.target.closest(".domain-modal__view-all-btn");
+
+      if (!viewAllBtn) return;
+
       const href = viewAllBtn?.dataset.href;
       const pageTitle = viewAllBtn?.dataset.pageTitle;
 
