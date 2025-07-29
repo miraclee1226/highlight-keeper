@@ -2,13 +2,14 @@ import {
   createHighlight as createHighlightBridge,
   updateHighlight as updateHighlightBridge,
   deleteHighlight as deleteHighlightBridge,
-} from "../../../bridge/highlight-bridge.js";
-import { getOriginalDOMInfo, getPageTitle } from "../../utils/dom-utils.js";
-import { generateId } from "../../utils/id-generator.js";
+} from "../../bridge/highlight-bridge.js";
 import {
+  getOriginalDOMInfo,
+  getPageTitle,
   renderHighlight,
   removeHighlightFromDOM,
-} from "./highlight-renderer.js";
+} from "../utils/dom-utils.js";
+import { generateId } from "../utils/id-generator.js";
 
 export async function createHighlight(selection, color) {
   try {
@@ -34,7 +35,6 @@ export async function createHighlight(selection, color) {
     };
 
     await createHighlightBridge(highlightData);
-
     const elements = renderHighlight(selection.range, highlightId, color);
 
     return { elements, highlightData };
@@ -42,36 +42,6 @@ export async function createHighlight(selection, color) {
     console.error("Failed to create highlight:", error);
     return null;
   }
-}
-
-function extractSiteName(domain) {
-  const parts = domain.split(".");
-  const excludeParts = [
-    "com",
-    "org",
-    "net",
-    "edu",
-    "gov",
-    "mil",
-    "co",
-    "kr",
-    "jp",
-    "cn",
-    "uk",
-    "de",
-    "fr",
-    "www",
-    "blog",
-    "shop",
-    "store",
-  ];
-
-  const siteName = parts.find((part) => !excludeParts.includes(part));
-  const capitalizedSiteName = siteName
-    ? siteName.charAt(0).toUpperCase() + siteName.slice(1)
-    : "Unknown";
-
-  return capitalizedSiteName;
 }
 
 export async function updateHighlight(highlightId, updates) {
@@ -119,4 +89,33 @@ export function scrollToHighlight(highlightId) {
 
   const firstElement = elements[0];
   firstElement.scrollIntoView({ behavior: "smooth", block: "center" });
+  return true;
+}
+
+function extractSiteName(domain) {
+  const parts = domain.split(".");
+  const excludeParts = [
+    "com",
+    "org",
+    "net",
+    "edu",
+    "gov",
+    "mil",
+    "co",
+    "kr",
+    "jp",
+    "cn",
+    "uk",
+    "de",
+    "fr",
+    "www",
+    "blog",
+    "shop",
+    "store",
+  ];
+
+  const siteName = parts.find((part) => !excludeParts.includes(part));
+  return siteName
+    ? siteName.charAt(0).toUpperCase() + siteName.slice(1)
+    : "Unknown";
 }

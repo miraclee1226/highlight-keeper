@@ -104,17 +104,6 @@
   box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Button */
-.button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
 /* Icons in toolbar */
 .bulb-button,
 .note-button,
@@ -203,7 +192,7 @@
 }
 
 .color-palette-button.current-color {
-  border: 2px solid #daecff;
+  border: 2px solid white;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
 }
 
