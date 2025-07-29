@@ -15,12 +15,10 @@ export const pageState = {
       });
     }
   },
-
   get() {
     const state = store.getState("page");
     return state || { url: null, title: null };
   },
-
   subscribe(callback) {
     return store.subscribe("page", (newState, prevState) => {
       callback(newState, prevState);

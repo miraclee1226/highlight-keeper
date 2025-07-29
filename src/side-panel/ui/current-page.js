@@ -5,7 +5,7 @@ import {
 import { Component } from "../../components/base-component.js";
 import { HighlightCard } from "../../components/card/index.js";
 import { createMessageHTML } from "../../components/message/index.js";
-import { pageState } from "../store/page-store.js";
+import { pageState } from "../../store/page-store.js";
 
 export class CurrentPage extends Component {
   setup() {

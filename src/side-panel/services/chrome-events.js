@@ -1,4 +1,4 @@
-import { pageState } from "../store/page-store.js";
+import { pageState } from "../../store/page-store.js";
 import { handleHighlightUpdate } from "./highlight-update.js";
 
 export function initChromeEvents() {
