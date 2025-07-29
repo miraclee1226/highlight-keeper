@@ -1,4 +1,4 @@
-import { DB_NAME, DB_VERSION, STORE_NAMES } from "../constant/database.js";
+import { DB_NAME, DB_VERSION, STORE_NAMES } from "../constant/index.js";
 
 let db = null;
 let dbInitPromise = null;

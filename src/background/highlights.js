@@ -1,4 +1,4 @@
-import { STORE_NAMES } from "../constant/database.js";
+import { STORE_NAMES } from "../constant/index.js";
 import { getDB } from "./db-connection.js";
 
 export function getAllHighlights() {

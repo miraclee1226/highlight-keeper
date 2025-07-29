@@ -1,4 +1,4 @@
-import { COLORS } from "../../constant/colors.js";
+import { COLORS } from "../../constant/index.js";
 import { Component } from "../base-component.js";
 
 export class ColorPalette extends Component {

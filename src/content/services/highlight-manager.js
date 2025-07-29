@@ -7,7 +7,7 @@ import { calculatePosition } from "../utils/position.js";
 import { Toolbar } from "../../components/toolbar/index.js";
 import { NoteEditor } from "../../components/note-editor/index.js";
 import { SelectionManager } from "./selection-manager.js";
-import { COLORS } from "../../constant/colors.js";
+import { COLORS } from "../../constant/index.js";
 
 export class HighlightManager {
   constructor() {
