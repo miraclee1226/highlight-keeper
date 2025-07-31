@@ -1,6 +1,5 @@
 import { getDomainDetails } from "../../bridge/domain-bridge.js";
-import { DomainModal } from "../../components/modal/domain-modal.js";
-import { PageHighlightsModal } from "../../components/modal/page-highlights-modal.js";
+import { ModalManager } from "../../components/modal/modal-manager.js";
 import { App } from "../ui/app.js";
 
 export function handleHighlightUpdate(request, url) {
@@ -10,8 +9,10 @@ export function handleHighlightUpdate(request, url) {
 
   const currentPageInstance = appInstance.getCurrentPageInstance();
   const allPagesInstance = appInstance.getAllPagesInstance();
-  const domainModalInstance = DomainModal.getInstance();
-  const pageModalInstance = PageHighlightsModal.getInstance();
+
+  const modalManager = ModalManager.getInstance();
+  const domainModalInstance = modalManager.getModalByType("DomainModal");
+  const pageModalInstance = modalManager.getModalByType("PageHighlightsModal");
 
   switch (request.action) {
     case "highlight_created":

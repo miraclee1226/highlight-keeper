@@ -18,6 +18,13 @@ export class ModalManager {
     return ModalManager.instance;
   }
 
+  getModalByType(modalType) {
+    return (
+      this.modalStack.find((modal) => modal.constructor.name === modalType) ||
+      null
+    );
+  }
+
   openModal(modal) {
     if (this.modalStack.length === 0) {
       this.createOverlay();

@@ -4,15 +4,7 @@ import { getHighlights } from "../../bridge/highlight-bridge.js";
 import { escapeHtml } from "../../side-panel/utils/formatter.js";
 
 export class PageHighlightsModal {
-  static instance;
-
   constructor({ uuid, href, pageTitle }) {
-    if (PageHighlightsModal.instance) {
-      ModalManager.getInstance().closeModal(PageHighlightsModal.instance);
-    }
-
-    PageHighlightsModal.instance = this;
-
     this.uuid = uuid;
     this.href = href;
     this.pageTitle = pageTitle;
@@ -28,10 +20,6 @@ export class PageHighlightsModal {
     modal.initialize();
 
     return modal;
-  }
-
-  static getInstance() {
-    return PageHighlightsModal.instance;
   }
 
   template() {
@@ -132,9 +120,5 @@ export class PageHighlightsModal {
         console.log(`Highlight with UUID ${this.uuid} not found.`);
       }
     }, 500);
-  }
-
-  destroy() {
-    PageHighlightsModal.instance = null;
   }
 }

@@ -4,15 +4,7 @@ import { PageHighlightsModal } from "./page-highlights-modal.js";
 import { ModalManager } from "./modal-manager.js";
 
 export class DomainModal {
-  static instance;
-
   constructor(domainData) {
-    if (DomainModal.instance) {
-      ModalManager.getInstance().closeModal(DomainModal.instance);
-    }
-
-    DomainModal.instance = this;
-
     this.modalType = "bottom";
     this.domainData = domainData;
   }
@@ -23,10 +15,6 @@ export class DomainModal {
     ModalManager.getInstance().openModal(modal);
 
     return modal;
-  }
-
-  static getInstance() {
-    return DomainModal.instance;
   }
 
   template() {
@@ -138,9 +126,5 @@ export class DomainModal {
       .join("");
 
     this.setEvents();
-  }
-
-  destroy() {
-    DomainModal.instance = null;
   }
 }
