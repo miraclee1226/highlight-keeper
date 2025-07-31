@@ -9,7 +9,7 @@ import {
   renderHighlight,
   removeHighlightFromDOM,
 } from "../utils/dom-utils.js";
-import { generateId } from "../utils/id-generator.js";
+import { generateId } from "../../utils/index.js";
 
 export async function createHighlight(selection, color) {
   try {
@@ -21,7 +21,7 @@ export async function createHighlight(selection, color) {
     }
 
     const highlightData = {
-      uuid: highlightId,
+      uuid: "highlight-" + highlightId,
       href: location.href,
       domain: location.hostname,
       siteName: extractSiteName(location.hostname),
