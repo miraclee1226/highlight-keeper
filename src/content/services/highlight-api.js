@@ -2,6 +2,7 @@ import {
   createHighlight as createHighlightBridge,
   updateHighlight as updateHighlightBridge,
   deleteHighlight as deleteHighlightBridge,
+  deleteAllHighlights as deleteAllHighlightsBridge,
 } from "../../bridge/highlight-bridge.js";
 import {
   getOriginalDOMInfo,
@@ -79,6 +80,32 @@ export async function deleteHighlight(highlightId) {
     await deleteHighlightBridge(highlightId);
   } catch (error) {
     console.error("Failed to delete highlight:", error);
+  }
+}
+
+export async function deleteAllHighlights(href) {
+  try {
+    const allHighlightElements = document.querySelectorAll(
+      ".highlighted-element"
+    );
+
+    allHighlightElements.forEach((element) => {
+      const parent = element.parentNode;
+      parent.insertBefore(
+        document.createTextNode(element.textContent),
+        element
+      );
+      parent.removeChild(element);
+    });
+
+    document.normalize();
+
+    await deleteAllHighlightsBridge(href);
+
+    return allHighlightElements.length;
+  } catch (error) {
+    console.error("Failed to delete all highlights:", error);
+    throw error;
   }
 }
 

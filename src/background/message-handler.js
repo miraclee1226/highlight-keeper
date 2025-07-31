@@ -6,6 +6,7 @@ import {
   createHighlight,
   updateHighlight,
   deleteHighlight,
+  deleteAllHighlights,
 } from "./highlights.js";
 
 export function handleMessage(request, sender, sendResponse) {
@@ -110,6 +111,23 @@ export function handleMessage(request, sender, sendResponse) {
           sendResponse({
             action: "get_domain_details_error",
             error: error.message,
+          });
+        });
+      break;
+
+    case "delete_all_highlights":
+      deleteAllHighlights(request.payload)
+        .then((deletedCount) => {
+          sendResponse({
+            action: "delete_all_success",
+            data: deletedCount,
+          });
+        })
+        .catch((error) => {
+          console.error("Delete all operation failed:", error);
+          sendResponse({
+            action: "delete_all_error",
+            error: error.message || "Unknown error during delete all operation",
           });
         });
       break;

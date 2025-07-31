@@ -40,9 +40,24 @@ export async function deleteHighlight(highlightId) {
   return result;
 }
 
+export async function deleteAllHighlights(href) {
+  const result = await sendMessageToBackground({
+    action: "delete_all_highlights",
+    payload: href,
+  });
+
+  return result;
+}
+
 export async function scrollToHighlight(uuid) {
   return await sendMessageToTab({
     action: "scroll_to_highlight",
     payload: uuid,
+  });
+}
+
+export async function removeAllHighlightsFromDOM() {
+  return await sendMessageToTab({
+    action: "remove_all_highlights_from_dom",
   });
 }

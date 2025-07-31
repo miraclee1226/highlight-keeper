@@ -1,6 +1,8 @@
 import {
   getHighlights,
+  deleteAllHighlights,
   scrollToHighlight,
+  removeAllHighlightsFromDOM,
 } from "../../bridge/highlight-bridge.js";
 import { Component } from "../../components/base-component.js";
 import { HighlightCard } from "../../components/card/index.js";
@@ -182,7 +184,10 @@ export class CurrentPage extends Component {
   }
 
   async copyAllHighlights() {
-    if (this.state.highlights.length === 0) return;
+    if (this.state.highlights.length === 0) {
+      ToastManager.getInstance().info("No highlights to copy");
+      return;
+    }
 
     try {
       const copyText = this.state.highlights
@@ -198,9 +203,33 @@ export class CurrentPage extends Component {
     }
   }
 
-  // TODO
-  deleteAllHighlights() {
-    console.log("Delete all highlights");
+  async deleteAllHighlights() {
+    if (this.state.highlights.length === 0) {
+      ToastManager.getInstance().info("No highlights to delete");
+      return;
+    }
+
+    try {
+      const currentUrl = pageState.get().url;
+
+      try {
+        await removeAllHighlightsFromDOM();
+      } catch (error) {
+        console.warn("Failed to remove highlights from DOM:", error);
+      }
+
+      const deletedCount = await deleteAllHighlights(currentUrl);
+
+      this.state.highlights = [];
+      this.renderContent();
+
+      ToastManager.getInstance().success(
+        `${deletedCount} highlight${deletedCount > 1 ? "s" : ""} deleted!`
+      );
+    } catch (error) {
+      console.error("Failed to delete all highlights:", error);
+      ToastManager.getInstance().error("Failed to delete highlights");
+    }
   }
 
   cleanup() {

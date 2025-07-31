@@ -289,3 +289,57 @@ export function deleteHighlight(uuid) {
       throw new Error("Failed to delete highlight: " + error.message);
     });
 }
+
+export function deleteAllHighlights(href) {
+  const db = getDB();
+  if (!db) {
+    return Promise.reject(new Error("Database not initialized"));
+  }
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAMES.HIGHLIGHTS], "readwrite");
+    const objectStore = transaction.objectStore(STORE_NAMES.HIGHLIGHTS);
+    const hrefIndex = objectStore.index("href");
+
+    let deletedCount = 0;
+
+    const request = hrefIndex.openCursor(IDBKeyRange.only(href));
+
+    request.onsuccess = function (event) {
+      const cursor = event.target.result;
+
+      if (cursor) {
+        const deleteRequest = cursor.delete();
+
+        deleteRequest.onsuccess = function () {
+          deletedCount++;
+        };
+
+        deleteRequest.onerror = function () {
+          console.error("Error deleting highlight:", deleteRequest.error);
+        };
+
+        cursor.continue();
+      }
+    };
+
+    request.onerror = function () {
+      console.error("Error during bulk delete: ", request.error);
+      reject(new Error("Failed to delete highlights: " + request.error));
+    };
+
+    transaction.oncomplete = function () {
+      console.log(
+        `Successfully deleted ${deletedCount} highlights from ${href}`
+      );
+      resolve(deletedCount);
+    };
+
+    transaction.onerror = function (event) {
+      console.error("Delete all transaction error:", event.target.error);
+      reject(
+        new Error("Failed to delete all highlights: " + event.target.error)
+      );
+    };
+  });
+}
