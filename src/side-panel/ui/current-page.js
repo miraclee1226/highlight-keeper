@@ -6,6 +6,7 @@ import { Component } from "../../components/base-component.js";
 import { HighlightCard } from "../../components/card/index.js";
 import { Dropdown } from "../../components/dropdown/index.js";
 import { createMessageHTML } from "../../components/message/index.js";
+import { ToastManager } from "../../components/toast/toast-manager.js";
 import { pageState } from "../../store/page-store.js";
 
 export class CurrentPage extends Component {
@@ -161,6 +162,13 @@ export class CurrentPage extends Component {
   }
 
   setEvent() {
+    this.addEvent("click", ".more-menu-btn", (event) => {
+      event.stopPropagation();
+
+      const button = event.target.closest(".more-menu-btn");
+      this.dropdown.show(button);
+    });
+
     this.addEvent("click", ".highlight-item", async (event) => {
       try {
         const highlightElement = event.target.closest(".highlight-item");
@@ -171,13 +179,23 @@ export class CurrentPage extends Component {
         console.log(error);
       }
     });
+  }
 
-    this.addEvent("click", ".more-menu-btn", (event) => {
-      event.stopPropagation();
+  async copyAllHighlights() {
+    if (this.state.highlights.length === 0) return;
 
-      const button = event.target.closest(".more-menu-btn");
-      this.dropdown.show(button);
-    });
+    try {
+      const copyText = this.state.highlights
+        .map((highlight) => highlight.selection.text)
+        .join("\n\n");
+
+      await navigator.clipboard.writeText(copyText);
+
+      ToastManager.getInstance().success("All highlights copied!");
+    } catch (error) {
+      console.error("Failed to copy highlights:", error);
+      ToastManager.getInstance().error("Failed to copy highlights");
+    }
   }
 
   // TODO
