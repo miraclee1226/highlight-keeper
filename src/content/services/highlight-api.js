@@ -76,8 +76,10 @@ export async function updateHighlight(highlightId, updates) {
 
 export async function deleteHighlight(highlightId) {
   try {
+    const normalizedId = `highlight-${highlightId}`;
+
     removeHighlightFromDOM(highlightId);
-    await deleteHighlightBridge(highlightId);
+    await deleteHighlightBridge(normalizedId);
   } catch (error) {
     console.error("Failed to delete highlight:", error);
   }

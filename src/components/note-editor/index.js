@@ -84,6 +84,7 @@ export class NoteEditor extends Component {
       if (!this.props.highlightElement) return;
 
       const highlightId = this.props.highlightElement.dataset.id;
+      const normalizedId = `highlight-${highlightId}`;
 
       if (!highlightId) return;
 
@@ -99,7 +100,7 @@ export class NoteEditor extends Component {
         }
       });
 
-      await updateHighlight(highlightId, { note });
+      await updateHighlight(normalizedId, { note });
     } catch (error) {
       console.error("Failed to save note:", error);
     }
