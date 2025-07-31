@@ -6,7 +6,7 @@ export class NoteEditor extends Component {
   setup() {
     this.initPopup();
 
-    Object.defineProperty(this, "editorElement", {
+    Object.defineProperty(this, "$editorElement", {
       get() {
         return this.popupElement;
       },
@@ -41,7 +41,7 @@ export class NoteEditor extends Component {
     if (!this.state.isVisible) return;
 
     this.$target.insertAdjacentHTML("beforeend", this.template());
-    this.editorElement = this.$target.querySelector(".note-editor");
+    this.$editorElement = this.$target.querySelector(".note-editor");
     this.mounted();
   }
 
@@ -50,14 +50,16 @@ export class NoteEditor extends Component {
   }
 
   mounted() {
-    if (!this.state.isVisible || !this.editorElement) return;
+    if (!this.state.isVisible || !this.$editorElement) return;
 
     this.setupTextarea();
     this.setupPopupEventHandlers([this.props.highlightElement]);
   }
 
   setupTextarea() {
-    const textarea = this.editorElement.querySelector(".note-editor__textarea");
+    const textarea = this.$editorElement.querySelector(
+      ".note-editor__textarea"
+    );
 
     textarea.focus();
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
@@ -118,6 +120,9 @@ export class NoteEditor extends Component {
 
   hide() {
     this.hideWithAnimation("note-editor--hiding");
+    this.setState({
+      isVisible: false,
+    });
   }
 
   calculatePosition(highlightElement) {
