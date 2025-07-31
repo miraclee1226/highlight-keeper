@@ -8,7 +8,6 @@ import { PageHighlightsModal } from "./page-highlights-modal.js";
 export class SearchModal {
   constructor() {
     this.modalType = "center";
-    this.searchTimeout = null;
     this.allHighlights = [];
   }
 
@@ -159,11 +158,5 @@ export class SearchModal {
         this.handleDomainCardClick(domainItem);
       }
     });
-  }
-
-  destroy() {
-    if (this.searchTimeout) {
-      clearTimeout(this.searchTimeout);
-    }
   }
 }
