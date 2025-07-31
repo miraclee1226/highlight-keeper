@@ -4,6 +4,7 @@ import {
 } from "../../bridge/highlight-bridge.js";
 import { Component } from "../../components/base-component.js";
 import { HighlightCard } from "../../components/card/index.js";
+import { Dropdown } from "../../components/dropdown/index.js";
 import { createMessageHTML } from "../../components/message/index.js";
 import { pageState } from "../../store/page-store.js";
 
@@ -12,6 +13,8 @@ export class CurrentPage extends Component {
     this.state = {
       highlights: [],
     };
+
+    this.dropdown = null;
 
     this.unsubscribePage = pageState.subscribe(
       async (newPageInfo, prevPageInfo) => {
@@ -65,19 +68,6 @@ export class CurrentPage extends Component {
                 "/public/icons/more_horiz.svg"
               )}" alt="More options" />
             </button>
-
-            <ul class="menu-list">
-              <li>
-                <button class="menu-item">
-                  Copy All Highlights
-                </button>
-              </li>
-              <li>
-                <button class="menu-item delete-all">
-                  Delete All Highlights
-                </button>
-              </li>
-            </ul>
           </div>
         </div>
 
@@ -93,7 +83,41 @@ export class CurrentPage extends Component {
       return;
     }
 
+    this.initDropdown();
     this.renderContent();
+  }
+
+  initDropdown() {
+    const menuItems = [
+      {
+        action: "copy-all",
+        label: "Copy All Highlights",
+        className: "",
+      },
+      {
+        action: "delete-all",
+        label: "Delete All Highlights",
+        className: "delete-all",
+      },
+    ];
+
+    this.dropdown = new Dropdown(this.$target, {
+      menuItems,
+      onItemClick: this.handleMenuItemClick.bind(this),
+    });
+  }
+
+  handleMenuItemClick({ action }) {
+    switch (action) {
+      case "copy-all":
+        this.copyAllHighlights();
+        break;
+      case "delete-all":
+        this.deleteAllHighlights();
+        break;
+      default:
+        console.warn("Unknown action:", action);
+    }
   }
 
   renderContent() {
@@ -151,33 +175,9 @@ export class CurrentPage extends Component {
     this.addEvent("click", ".more-menu-btn", (event) => {
       event.stopPropagation();
 
-      const dropdown = this.$target.querySelector(".menu-list");
-      if (dropdown) {
-        dropdown.classList.toggle("active");
-      }
+      const button = event.target.closest(".more-menu-btn");
+      this.dropdown.show(button);
     });
-
-    this.addEvent("click", ".menu-list", (event) => {
-      event.stopPropagation();
-
-      const action = event.target.textContent.trim();
-
-      switch (action) {
-        case "Copy All Highlights":
-          this.copyAllHighlights();
-          break;
-        case "Delete All Highlights":
-          this.deleteAllHighlights();
-          break;
-        default:
-          console.warn("Unknown action:", action);
-      }
-    });
-  }
-
-  // TODO
-  copyAllHighlights() {
-    console.log("Copy all highlights");
   }
 
   // TODO
@@ -188,6 +188,10 @@ export class CurrentPage extends Component {
   cleanup() {
     if (this.unsubscribePage) {
       this.unsubscribePage();
+    }
+
+    if (this.dropdown) {
+      this.dropdown.cleanup();
     }
 
     if (this.$target) {
