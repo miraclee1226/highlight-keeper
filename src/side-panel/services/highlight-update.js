@@ -117,8 +117,8 @@ async function handleHighlightDeleted(request, instances) {
 
   if (allPagesInstance) {
     try {
-      const latestDomainDetails = await getDomainDetails();
-      allPagesInstance.updateDomainsData(latestDomainDetails);
+      const dominDetails = await getDomainDetails();
+      allPagesInstance.updateDomainsData(dominDetails);
     } catch (error) {
       console.error("All pages update failed:", error);
     }
