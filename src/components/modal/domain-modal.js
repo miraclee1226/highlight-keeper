@@ -7,6 +7,7 @@ export class DomainModal {
   constructor(domainData) {
     this.modalType = "bottom";
     this.domainData = domainData;
+    this.eventHandler = null;
   }
 
   static open(domainData) {
@@ -44,14 +45,9 @@ export class DomainModal {
     return `
       <div class="domain-modal__page-group">
         <div class="domain-modal__page-info">
-          <h3 class="domain-modal__page-title">
-              ${escapeHtml(pageTitle)}
-          </h3>
-          <p class="domain-modal__page-url">
-              ${escapeHtml(href)}
-          </p>
+          <h3 class="domain-modal__page-title">${escapeHtml(pageTitle)}</h3>
+          <p class="domain-modal__page-url">${escapeHtml(href)}</p>
         </div>
-
         <div class="domain-modal__page-highlights">
           ${displayHighlights
             .map((highlight) => this.createHighlightPreviewHTML(highlight))
@@ -78,16 +74,24 @@ export class DomainModal {
   }
 
   setEvents() {
-    this.element.addEventListener("click", (event) => {
-      const viewAllBtn = event.target.closest(".domain-modal__view-all-btn");
+    this.removeEvents();
 
+    this.eventHandler = (event) => {
+      const viewAllBtn = event.target.closest(".domain-modal__view-all-btn");
       if (!viewAllBtn) return;
 
-      const href = viewAllBtn?.dataset.href;
-      const pageTitle = viewAllBtn?.dataset.pageTitle;
-
+      const { href, pageTitle } = viewAllBtn.dataset;
       PageHighlightsModal.open({ href, pageTitle });
-    });
+    };
+
+    this.element.addEventListener("click", this.eventHandler);
+  }
+
+  removeEvents() {
+    if (this.eventHandler && this.element) {
+      this.element.removeEventListener("click", this.eventHandler);
+      this.eventHandler = null;
+    }
   }
 
   isHighlightBelongsToThisDomain(highlightData) {
@@ -102,8 +106,8 @@ export class DomainModal {
 
   async refreshDomainModalData() {
     try {
-      const doaminDetails = await getDomainDetails();
-      const updatedDomain = doaminDetails.find(
+      const domainDetails = await getDomainDetails();
+      const updatedDomain = domainDetails.find(
         (data) => data.domain === this.domainData.domain
       );
 
@@ -126,5 +130,9 @@ export class DomainModal {
       .join("");
 
     this.setEvents();
+  }
+
+  cleanup() {
+    this.removeEvents();
   }
 }

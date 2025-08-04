@@ -10,6 +10,7 @@ export class AllPages extends Component {
       domains: [],
     };
     this.hasError = false;
+    this.clickHandler = null;
   }
 
   async loadDomainDetails() {
@@ -38,7 +39,6 @@ export class AllPages extends Component {
         secondaryText: "Please refresh the page or try again later",
         isError: true,
       });
-
       return;
     }
 
@@ -47,7 +47,6 @@ export class AllPages extends Component {
         primaryText: "No highlights found",
         secondaryText: "Drag text to start highlighting!",
       });
-
       return;
     }
 
@@ -63,11 +62,17 @@ export class AllPages extends Component {
   }
 
   setEvent() {
-    this.addEvent("click", ".domain-item", (event) => {
+    this.removeEvents();
+
+    this.clickHandler = (event) => {
       const domainElement = event.target.closest(".domain-item");
+      if (!domainElement) return;
+
       const siteName = domainElement.querySelector(
         ".domain-item__title"
-      ).textContent;
+      )?.textContent;
+      if (!siteName) return;
+
       const clickedDomain = this.state.domains.find(
         (domain) => domain.siteName === siteName
       );
@@ -75,10 +80,21 @@ export class AllPages extends Component {
       if (clickedDomain) {
         DomainModal.open(clickedDomain);
       }
-    });
+    };
+
+    this.$target.addEventListener("click", this.clickHandler);
+  }
+
+  removeEvents() {
+    if (this.clickHandler && this.$target) {
+      this.$target.removeEventListener("click", this.clickHandler);
+      this.clickHandler = null;
+    }
   }
 
   cleanup() {
+    this.removeEvents();
+
     if (this.$target) {
       this.$target.innerHTML = "";
     }
