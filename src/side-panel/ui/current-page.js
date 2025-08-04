@@ -81,22 +81,19 @@ export class CurrentPage extends Component {
   async mounted() {
     const pageInfo = pageState.get();
 
+    this.initDropdown();
+
     if (pageInfo.url && this.state.highlights.length === 0) {
       await this.loadHighlights(pageInfo.url);
       return;
     }
 
-    this.initDropdown();
     this.renderContent();
   }
 
   initDropdown() {
     const menuItems = [
-      {
-        action: "copy-all",
-        label: "Copy All Highlights",
-        className: "",
-      },
+      { action: "copy-all", label: "Copy All Highlights", className: "" },
       {
         action: "delete-all",
         label: "Delete All Highlights",
@@ -106,21 +103,11 @@ export class CurrentPage extends Component {
 
     this.dropdown = new Dropdown(this.$target, {
       menuItems,
-      onItemClick: this.handleMenuItemClick.bind(this),
+      onItemClick: ({ action }) => {
+        if (action === "copy-all") this.copyAllHighlights();
+        else if (action === "delete-all") this.deleteAllHighlights();
+      },
     });
-  }
-
-  handleMenuItemClick({ action }) {
-    switch (action) {
-      case "copy-all":
-        this.copyAllHighlights();
-        break;
-      case "delete-all":
-        this.deleteAllHighlights();
-        break;
-      default:
-        console.warn("Unknown action:", action);
-    }
   }
 
   renderContent() {
